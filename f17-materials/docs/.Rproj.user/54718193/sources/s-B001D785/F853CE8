@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1530289414626.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "1140914921",
+    "id" : "F853CE8",
+    "lastKnownWriteTime" : 1530308638,
+    "last_content_update" : 1530308639174,
+    "path" : "~/Documents/github/epsy-8251/docs/schedule.Rmd",
+    "project_path" : "schedule.Rmd",
+    "properties" : {
+        "cursorPosition" : "154,26",
+        "scrollLine" : "141"
+    },
+    "relative_order" : 2,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}
