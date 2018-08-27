@@ -1,0 +1,298 @@
+---
+title: "Log-Transforming the Predictor"
+date: "`r Sys.Date()`"
+header-includes:
+   - \usepackage{xcolor}
+   - \usepackage[framemethod=tikz]{mdframed}
+   - \usepackage{graphicx}
+   - \usepackage{rotating}
+   - \usepackage{booktabs}
+   - \definecolor{umn}{RGB}{153, 0, 85}
+   - \definecolor{umn2}{rgb}{0.1843137, 0.4509804, 0.5372549}
+   - \definecolor{myorange}{HTML}{EA6153}
+output: 
+  pdf_document:
+    highlight: tango
+urlcolor: "umn2"
+bibliography: epsy8251.bib
+csl: apa-single-spaced.csl
+always_allow_html: yes
+---
+
+```{r knitr_init, echo=FALSE, cache=FALSE}
+library(knitr)
+library(rmdformats)
+
+## Global options
+options(max.print="75")
+opts_chunk$set(prompt=FALSE, comment=NA, message=FALSE, warning=FALSE, tidy=FALSE, fig.width=6, fig.height=6)
+opts_knit$set(width=85)
+options(scipen=5)
+```
+
+
+## Read in Data
+
+The data we will use in this set of notes, *infant-mortality.csv*, contains country-level data on the infant mortality rates and risk factors for several countries.
+
+
+
+```{r message=FALSE}
+# Load libraries
+library(broom)
+library(dplyr)
+library(ggplot2)
+library(ggExtra)
+library(readr)
+library(sm)
+
+# Read in data
+infant = read_csv(file = "~/Dropbox/epsy-8251/data/infant-mortality.csv")
+head(infant)
+```
+
+\newpage
+
+## Relationship between Per Capita Income and Infant Mortality Rate
+
+The scatterplot of Per Capita Income (PCI) and infant mortality rates suggests that the relationship between these variables may be curvilinear.
+
+```{r echo=FALSE, fig.height=4, fig.width=4, out.width='4in'}
+p1 = ggplot(data = infant, aes(x = pci, y = mortality)) +
+	geom_point() +
+	theme_bw() +
+  xlab("Per capita income") +
+  ylab("Infant mortality rate")
+
+ggMarginal(p1, type = "histogram")
+```
+
+If we are unsure, we can fit the regression model and examine the residuals.
+
+```{r warning=FALSE, fig.height=4, fig.width=4, out.width='3.5in'}
+lm.1 = lm(mortality ~ 1 + pci, data = infant)
+
+out1 = augment(lm.1)
+
+ggplot(data = out1, aes(x = .fitted, y = .std.resid)) +
+  geom_point() +
+  geom_hline(yintercept = 0) +
+  theme_bw()
+
+```
+
+The residuals suggest a non-linear realationship. 
+
+## Log-Transforming the Predictor
+
+Looking at the histogram of PCI, we see the distribution is right-skewed. Furthermore, the relationship shows an *exponential decay* function. This might be alleviated if we log-transform right-skewed variables. To do this, since the $X$-variable is skewed, we fit a model that predicts $Y$ using the logarithm of $X$.
+
+```{r}
+infant = infant %>% mutate(Lpci = log(pci))
+head(infant)
+```
+
+
+
+```{r echo=FALSE, fig.width=4, fig.height=4, out.width='4in'}
+p2 = ggplot(data = infant, aes(x = Lpci, y = mortality)) +
+	geom_point() +
+	theme_bw() +
+  xlab("ln(Per capita income)") +
+  ylab("Infant mortality rate")
+
+ggMarginal(p2, type = "histogram")
+```
+
+
+- The log-transformed PCI variable is reasonably symmetric.
+- The relationship between `Lpci` and `mortality` is reasonably linear.
+
+\newpage
+
+# Fitting the Regression Model
+
+We now fit the model, using the predictor `Lpci`.
+
+```{r}
+lm.2 = lm(mortality ~ 1 + Lpci, data = infant)
+```
+
+Before examining the coefficients, we can scrutinize the residuals to see whether the log-transformation helped us meet the assumption of linearity.
+
+```{r fig.height=4, fig.width=4, out.width='3.5in'}
+# Obtain residuals
+out = augment(lm.2)
+
+# Check linearity assumptions
+ggplot(data = out, aes(x = .fitted, y = .std.resid)) +
+  geom_point() +
+  geom_hline(yintercept = 0) +
+  theme_bw()
+```
+
+The assumption looks reasonably met as the horizontal line of $y=0$ is encompassed in the confidence envelope of the loess smoother.  
+
+\newpage
+
+### Interpret the Regression Results
+
+We can now look at the `summary()` output and interpret the output.
+
+```{r}
+summary(lm.2)
+```
+
+
+Examining the model-level output, we see that differences in $\ln(\mathrm{PCI})$ explain 62.2\% of the variation in infant mortality rates. This is statistically significant, $F(1,~47)=77.41$, $p<.001$. Since differences in $\ln(\mathrm{PCI})$ imply that there are differences in the raw PCI values, we would typically just say that "differences in per capita income explains 62.2\% of the variation in infant mortality rates." 
+
+Moving to the coefficient-level output, we can write the fitted equation as,
+
+$$
+\hat{\mathrm{Infant~Mortality~Rate}} = 306.9 - 30.7\bigg[\ln(\mathrm{PCI})\bigg]
+$$
+
+We can interpret the coefficients as we always do, recognizing that these interpretation are based on the log-transformed predictor.
+
+- The intercept value of $306.9$ is the predicted average infant mortality rate for countries with a $\ln(\mathrm{PCI})$ value of 0.
+- The slope value of $-30.7$ indicates that each one-unit difference in $\ln(\mathrm{PCI})$ is associated with a $-30.7$-unit difference in infant mortality rate, on average.
+
+#### Better Interpretations: Back-transforming
+
+While these interpretations are technically correct, it is more helpful to your readers (and more conventional) to interpret any regression results in the metric of PCI rather than log-transformed PCI. This means we have to back-transform the interpretations. To back-transform a logarithm, we use its inverse function; exponentiation.
+
+We interpreted the intercept as, "the predicted average infant mortality rate for all countries with a $\ln(\mathrm{PCI})$ value of 0". To interpret this using the metric of raw PCI, we have to recall that $\ln(\mathrm{PCI}) = 0$ can be re-expressed as $e^{0} = \mathrm{PCI}$, which implies that $\mathrm{PCI}=1$. Thus, rather than using the log-transformed interpretation, we can, instead, interpret the intercept as,
+
+- The predicted average infant mortality rate for all countriess with a PCI of 1 is $306.9$.
+
+Since there are no countries in our data that have a PCI of 1, this is extrapolation.
+
+What about the slope? Our interpretation was that "each one-unit difference in $\ln(\mathrm{PCI})$ is associated with a $-30.7$-unit difference in infant mortality rate, on average." 
+
+Remember that if we use the natural logarithm, we can think about the raw-variable in terms of "percent change". In this example, we transformed $X$. Instead of talking about a one-unit difference in $\ln(\mathrm{PCI})$ we can refer to a "one-percent difference in PCI". 
+
+Consider three countries, each having a PCI that differs by 1\%; say these countries have PCI values of 1000, 1010, 1020.1. Using the fitted equation, we can compute the predicted infant mortality rate for each of these hypothetical scountries. The PCI values and predicted infant mortality rates for these countries are given below:
+
+```{r echo=FALSE}
+new = data.frame(
+  pci = c(1000, 1010, 1020.1)
+  ) %>% 
+  mutate( mortality = 306.9 - 30.7 * log(pci) )
+
+knitr::kable(new)
+```
+
+Examine the differences between each subsequent pair of predicted infant mortality rates. 
+
+```{r}
+94.22096 - 94.52644
+94.52644 - 94.83191
+```
+
+This difference is $-0.306$. In other words, for countries whose PCI differs by 1\%, their predicted infant mortality rate differs by $-0.306$, on average. This is essentially the slope term divided by 100.
+
+$$
+\frac{\hat\beta_1}{100}
+$$
+
+Now we have an interpretation for our slope coefficient using the raw metric of SAT score:
+
+- Each 1\% difference in PCI is associated with a $-.306$-unit difference in predicted infant mortality rate, on average. 
+
+## Plot of the Back-Transformed Model
+
+Since the predictor in the model is $\ln(\mathrm{PCI})$, we set up a data frame that includes a sequence of $\ln(\mathrm{PCI})$ values. Based on the raw data, a reasonable range for the $\ln(\mathrm{PCI})$ values is 6.217 to 8.859. Then we can predict using the `lm.2` fitted model.
+
+```{r}
+plotdata = data.frame(
+  Lpci = seq(from = 6.217, to = 8.859, by = .001)
+) %>%
+  mutate(yhat = predict(lm.2, newdata = .))
+
+head(plotdata)
+```
+
+Once we have predicted the infant mortality rates, we can back-transform the `Lpci` predictor to raw PCI.
+
+```{r}
+plotdata = plotdata %>%
+  mutate( pci = exp(Lpci) )
+
+head(plotdata)
+```
+
+Now we plot using the raw SAT scores on the $x$-axis.
+
+```{r fig.height=4, fig.width=4, out.width='3.5in'}
+ggplot(data = plotdata, aes(x = pci, y = yhat)) +
+  geom_line() +
+  theme_bw() +
+  xlab("Per capita income") +
+  ylab("Predicted infant mortality rate")
+```
+
+This plot shows the non-linearity in the relationship (exponential decay) between income and infant mortality rate.
+
+## Log-Transforming Both Predictor and Outcome
+
+Looking back at the model residuals, you may wonder whether the assumption of heterogeneity of variance is met. We can try to log-transform the outcome to alleviate this.
+
+```{r fig.width=4, fig.height=4, out.width='3.5in'}
+infant = infant %>%
+  mutate(Lmortality = log(mortality))
+
+lm.3 = lm(Lmortality ~ 1 + Lpci, data = infant)
+
+# Obtain residuals
+out = augment(lm.3)
+
+# Check linearity assumptions
+ggplot(data = out, aes(x = .fitted, y = .std.resid)) +
+  geom_point() +
+  geom_hline(yintercept = 0) +
+  theme_bw()
+```
+
+This seems quite reasonable. Now we will look at interpreting the regression coefficients:
+
+```{r}
+summary(lm.3)
+```
+
+Writing the fitted equation,
+
+$$
+\hat{\ln(\mathrm{Infant~Mortality~Rate})} = 7.48 - 0.43\bigg[\ln(\mathrm{PCI})\bigg]
+$$
+
+We can interpret the coefficients as we always do, recognizing that these interpretation are based on the log-transformed predictor AND log-transformed outcome.
+
+- The intercept value of $7.48$ is the predicted average $\ln(\mathrm{infant~mortality})$ rate for countries with a $\ln(\mathrm{PCI})$ value of 0.
+- The slope value of $-0.43$ indicates that each one-unit difference in $\ln(\mathrm{PCI})$ is associated with a $-0.43$-unit difference in $\ln(\mathrm{infant~mortality})$, on average.
+
+We can also back-transform to obtain better interpretations.
+
+- The back-transformed intercept value of 1772.2 is the predicted average infant~mortality rate for countries with a PCI value of 1 (extrapolation).
+- Each one-percent difference in PCI is associated with a 0.43\% decrease in infant mortality rate on average.
+
+You can see this by considering again our three hypothetical countries that have PCIs that differ by one percent.
+
+```{r}
+new = data.frame(
+  pci = c(1000, 1010, 1020.1)
+) %>% 
+  mutate( 
+    Lpci = log(pci)
+    ) %>%
+  mutate(
+    Lmortality = predict(lm.3, newdata = .)
+    ) %>%
+  mutate(mortality = exp(Lmortality))
+
+knitr::kable(new)
+```
+
+
+
+
+

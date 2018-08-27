@@ -1,0 +1,323 @@
+---
+title: "More Interaction Models"
+output: 
+  html_notebook:
+    theme: united
+    highlight: tango
+bibliography: epsy8251.bib    
+csl: apa-single-spaced.csl
+---
+
+# Introduction and Research Question
+
+In this set of notes, you will continue to learn about interaction models. Specifically, we will look at interactions between a quantitative predictor and a categorical predictor with more than two categories. Using the *movies.csv* dataset, we will examine the question of whether there is an age effect on movie budgets. To do this we will (1) examine the simple effect of age on budget, (2) examine the effect of age on budget after controlling for MPAA rating, and (3) examine if the effect of age is different depending on MPAA rating.  The variables included in the dataset are:
+
+- `title`: Movie's title
+- `budget`: Movie's budget (in U.S. dollars)
+- `age`: Age of the movie; Computed by subtracting the movie's release date from 2016
+- `mpaa`: MPAA rating (PG, PG-13, R)
+
+These data are a subset of data from the `movies` data included in the `ggplot2movies` package. The original data contains information on 24 variables collected for on 28,819 movies.
+
+
+# Preparation
+```{r preparation, warning=FALSE, message=FALSE}
+# Read in data
+movies = read.csv(file = "~/Documents/epsy-8251/data/movies.csv")
+head(movies)
+
+# Load libraries
+library(dplyr)
+library(ggplot2)
+library(sm)
+```
+
+After reading in the data, we will examine the summary information.
+
+```{r}
+summary(movies)
+```
+
+One thing that is immediately obvious is that the scales for age (focal predictor) and budget (outcome) are quite different. If we use the variables in their current form, R will produce scientific notation to account for the scale differences in the `lm()` output and any graphs. To alleviate this, we can re-scale the `budget` variable. 
+
+```{r}
+# Re-scale budget
+movies$budget_millions = movies$budget / 1000000
+head(movies)
+```
+
+The re-scaled `budget_millions` variable now represents the budget of the movie in millions of dollars. Remember, re-scaling a variable by dividing (or multiplying) by constant changes the scale, but does not change any of the relationships between any of the other variables. Thus we can use the re-scaled budget variable without changing any of the regression results. We will use the `budget_millions` variable in the remainder of the analyses.
+
+# Examine Potential Main-Effect of Age
+
+A quick examination of the data suggest that there is a negative effect of age on budget, in the sample. In other words, older movies tend to have a smaller budget, on average. The scatterplot also foreshadows some potential issues with homogeneity of variance. We will need to keep that in mind as we adopt a final model.
+
+```{r message=FALSE, warning=FALSE}
+ggplot(data = movies, aes(x = age, y = budget_millions)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+	theme_bw() +
+	xlab("Movie age") +
+	ylab("Movie Budget (in millions of dollars)")
+```
+
+Next, we will fit a simple regression model to evaluate whether the effect we are seeing is due only to chance. Before carrying out any analysis, we will set the $\alpha$-level we will use to 0.1 (rather than 0.05). We do this since we are carrying out an exploratory analysis. 
+
+```{r}
+lm.1 = lm(budget_millions ~ 1 + age, data = movies)
+summary(lm.1)
+```
+
+The model is statistically significant, however, differences in age only explain about 2\% of the variation in budget. A one-year difference in age is associated with budget differences, on average, of 0.7-million dollars.
+
+# Does the Effect of Age Persist after Controlling for MPAA Rating?
+
+To answer this question, we will fit a multiple regression model including MPAA rating and age in the model as predictors. Since MPAA rating is a categorical variable, we will first need to create the dummy variables to represent it:
+
+```{r}
+movies$pg = ifelse(movies$mpaa == "PG", 1, 0)
+movies$pg13 = ifelse(movies$mpaa == "PG-13", 1, 0)
+movies$r = ifelse(movies$mpaa == "R", 1, 0)
+
+head(movies)
+```
+
+Next we fit a main-effects model including two of the three dummy predictors for MPAA rating and the age effect.
+
+```{r}
+lm.2 = lm(budget_millions ~ 1 + age + pg + pg13, data = movies)
+summary(lm.2)
+```
+
+The model is statistically significant, with differences in age and MPAA rating explaining about 12\% of the variation in budget. A one-year difference in age is associated with budget differences, on average, of 0.7-million dollars, after controlling for differences in MPAA rating. There also seems to be an effect of MPAA rating, after controlling for age of a movie, since at least one of the dummy effects is zero. (If they were all zero, we would still have to check other models to see if there was an effect of MPAA rating since these dummy variables only represent the difference between R rated movies and the other two categories.) To further understand the effect of a categorical variable with more than two categories, we need to fit different models that have different reference groups. 
+
+## Testing All of the Effects Simultaneously
+
+It may not be of interest to the researcher how the groups vary, only that they do. For example, we may not care which MPAA ratings have a different average budget, only that the differences exist. This is generally the case when the categorical variable is a true control variable. 
+
+In that case, the individual effects are not important, just whether there is at least one effect that differs from zero in ALL the possible effects (e.g., whether at least one group differs from another group). We can test this by fitting a model that includes all effects except that for the categorical predictor(s) and another model that includes the same effects, but also includes the categorical predictor(s). For example, the two models we fitted previously (also shown below) fit this criteria.
+
+```{r}
+lm.1 = lm(budget_millions ~ 1 + age, data = movies)
+lm.2 = lm(budget_millions ~ 1 + age + pg + pg13, data = movies)
+```
+
+The only difference in these models is that the second includes the effect of MPAA rating. This implies that the second model is MORE COMPLEX than the first model (it has more parameters). The inferential question asks whether the added complexity actually adds explanatory power. In other words, we are examining the hypothesis that,
+
+$$
+H_0:\rho^2_{\mathrm{Complex~Model}} - \rho^2_{\mathrm{Simple~Model}}=0
+$$
+
+Another way of thinking about whether the additional predictors are warranted is to examine whether the reduction in SSE for the more complex model is more than what would be expected because of chance. Since $R^2$ and SSE are mathematically related to one another, either metric allows us to answer the same thing; is there a statistically significant effect of MPAA rating. To answer this question, we fit the models and then use the `anova()` function to compare the two models.
+
+```{r}
+anova(lm.1, lm.2)
+```
+
+The first two columns give the residual degrees of freedom and the SSE for the two models, respectively. The difference in the degrees of freedom between the two models is given in the third column, and the difference in the SSE is given in the fourth column. The $F$-statistic of 108.2 is evaluated using an $F$-distribution with 2 and 1802 degress of freedom,
+
+$$
+F(2, 1802) = 108.2
+$$
+This is statistically significant, $p < .001$, indicating that the SSE for the second model is significantly less than the SSE for the first model. It also indicates that the $R^2$ for the second model is significantly higher than the $R^2$ for the first model. This suggests that there are differences in the average budget between movies with different MPAA ratings, after controlling for differences in age. (Note that this analysis does not allow us to say which ratings have a different average budget...only that there are differences. If the "how do they differ" question is of interest, then you have to fit multiple models with differing reference groups and adjust for the number of comparisons.)
+
+This test is referred to as a *nested models F-test*. It is so called because Model 1 is *nested in* Model 2. Models are nested model when one or more of the effects in one model can be set to 0 and result in the second model. For example consider the equations for the two models we previously fitted: 
+
+$$
+\begin{split}
+\mathbf{Model~1:~} \hat{\mathrm{Budget}} &= \beta_0 + \beta_1(\mathrm{Age}) + \epsilon \\
+\mathbf{Model~2:~} \hat{\mathrm{Budget}} &= \beta_0 + \beta_1(\mathrm{Age}) + \beta_2(\mathrm{PG}) + \beta_3(\mathrm{PG13}) + \epsilon \\
+\end{split}
+$$
+
+If we set the $\beta_2$ and $\beta_3$ parameters to zero, Model 2 reduces to Model 1. Therefore, we say that Model 1 is nested within Model 2. The nested $F$-test examines all of the additional effects simultaneaously. We can alternatively write the hypothesis it is testing as:
+
+$$
+H_0: \beta_2 = \beta_3 = 0
+$$
+
+We can use this test to compare any set of nested models. 
+
+# Does the Effect of Age Differ Across MPAA Ratings?
+
+This is a RQ that requires fitting an interaction model. We should first examine the data to see if such a model seems reasonable.
+
+```{r}
+ggplot(data = movies, aes(x = age, y = budget_millions, color = mpaa)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  theme_bw() +
+  xlab("Movie age") +
+  ylab("Movie budget (in millions of dollars)") +
+  scale_color_brewer(name = "MPAA Rating", palette = "Set1") +
+  facet_wrap(~mpaa)
+```
+
+The plot suggests that the although the effect of age seems negative for all three movie ratings, the actual magnitude of the effect may vary across the three ratings. To examine whether this variation is due to chance, we fit the interaction model. First, we need to create the interaction terms. Previously we did this by multiplying the predictors that we suspect interact together (e.g., MPAA rating $\times$ age). Since there is more than one dummy variable that makes up the effect of MPAA rating, we need to multiply each of them by the age variable, creating two interaction predictors.
+
+```{r}
+movies$pg_age   = movies$pg   * movies$age
+movies$pg13_age = movies$pg13 * movies$age
+movies$r_age    = movies$r    * movies$age
+
+head(movies)
+```
+
+Then we include the constituent main effects and the interaction terms in the model. Just like in the main-effects models, we do not include all of the dummy variables for MPAA rating nor all the interaction terms in the model. We determine the reference category we want and do not include any variable (main-effect or interaction) that includes it. The interaction model below uses R rated movies as the referecne group, so the dummy variable `r` and the interaction term `r_age` are omitted from the model.
+
+```{r}
+lm.3 = lm(budget_millions ~ 1 + age + pg + pg13 + pg_age + pg13_age, data = movies)
+```
+
+To examine whether there is an interaction bewteen MPAA rating and age, we note that the main-effects model (`lm.2`) is nested in the interaction model (`lm.3`). Thus we can use a nested $F$-test to compare the models.
+
+```{r}
+anova(lm.2, lm.3)
+```
+
+Using the *a priori* $\alpha$-level of 0.1, we find that the interaction effect between MPAA rating and age of a movie explains additional (statistically significant) variation in movie budgets. This suggests that the age effect on budget depends on MPAA rating. To understand how the age effect differs across MPAA rating, we need to examine the regression results.
+
+```{r}
+summary(lm.3)
+```
+
+For R rated movies (the reference group), the fitted regression equation is,
+
+$$
+\hat{\mathrm{Budget}} = 25.57 - 0.34(\mathrm{Age}),
+$$
+
+implying that for R rated movies released in 2016 (age = 0) the average budget is 25.57 million dollars. Older R rated movies have lower average budgets, each year of age associated with a budget that is 0.34-million dollars lower, on average.
+
+What about PG rated movies? The fitted regression equation for PG rated movies is,
+
+$$
+\begin{split}
+\hat{\mathrm{Budget}} &= [25.57 + 24.95] + [-0.34 -0.45](\mathrm{Age}) \\
+&= 50.52 - 0.79(\mathrm{Age}),
+\end{split}
+$$
+
+implying that for PG rated movies released in 2016 (age = 0) the average budget is 50.52 million dollars. (This is 24.95 million dollars more than R rated movies made in the same year, which is statistically different than 0.) Older PG rated movies have lower average budgets, each year of age associated with a budget that is 0.79-million dollars lower, on average. This effect is 0.45-million dollars less than the effect for R rated movies, which is not statistically different (the difference is within what would be expected because of sampling error).
+
+We can also compute the fitted regression equation for PG-13 rated movies. Their fitted regression equation is,
+
+$$
+\begin{split}
+\hat{\mathrm{Budget}} &= [25.57 + 31.80] + [-0.34 -0.62](\mathrm{Age}) \\
+&= 57.37 - 0.96(\mathrm{Age}),
+\end{split}
+$$
+
+implying that for PG-13 rated movies released in 2016 (age = 0) the average budget is 57.37 million dollars. (This is 31.80 million dollars more than R rated movies made in the same year, which is statistically different than 0.) Older PG-13 rated movies have lower average budgets, each year of age associated with a budget that is 0.96-million dollars lower, on average. This effect is 0.62-million dollars less than the effect for R rated movies, which is  statistically different.
+
+How do PG movies compare to PG-13 movies? In other words is the difference in average budget for movies made in 2016 (a difference of 6.85 million dollars) significantly different for PG and PG-13 movies? Is the difference in effect (a yearly difference of 0.17 million dollars) statistically significant? In order to answer these questions, you would have to re-fit the interaction model using a different reference group.
+
+Note also that we really should adjust the $p$-values for the differences in intercepts and the differences in slopes based on the number of comparisons we are making. 
+
+## Plotting the Results of the Interaction Model
+
+Rather than over-interpret the differences by comouting $p$-values, we can provide a plot of the model results and describe the relationships we are seeing. Since the analysis is exploratory, this seems to be more consistent with the purpose of the analysis. Before we plot the results, we will introduce some more of the `lm()` modeling language.
+
+### Alternative Methods of Including Categorical Predictors
+
+If you have a categorical predictor in the dataset, we can use that predictor directly in the model rather than creating dummy variables. The `lm()` function will create the dummy variables and fit the model "behind-the-scenes". It will also choose the references category for you (it does this alphabetically). For example, to fit the main-effects model based on `lm.2` previously we could use the `mpaa` predictor rather than including the two dummy variables:
+
+```{r}
+lm.2 = lm(budget_millions ~ 1 + age + mpaa, data = movies)
+summary(lm.2)
+```
+
+In this model, the reference group is PG rated movies. If we want to use a different reference group, then we need to create the dummy variables or use the `relevel()` function. See this [Stack Overflow page](http://stackoverflow.com/questions/3872070/how-to-force-r-to-use-a-specified-factor-level-as-reference-in-a-regression) for more information.
+
+```{r}
+# Make R rated movies the reference group
+lm.2_r = lm(budget_millions ~ 1 + age + relevel(mpaa, ref = "R"), data = movies)
+summary(lm.2_r)
+```
+
+The `lm()` function also has specific notation for creating and including an interaction term "behind-the-scenes". To do this we use the colon (`:`) notation. For example, the interaction model we fitted earlier in the notes can be fitted as,
+
+```{r}
+lm.3 = lm(budget_millions ~ 1 + age + mpaa + age:mpaa, data = movies)
+summary(lm.3)
+```
+
+Again, note that `lm()` will choose the reference group for you. TO use a different reference group, we can again use the `relevel()` function, but we have to use it in the main-effect AND inthe interaction:
+
+```{r}
+# Make R rated movies the reference group
+lm.3_r = lm(budget_millions ~ 1 + age + relevel(mpaa, ref = "R") + age: relevel(mpaa, ref = "R"), data = movies)
+summary(lm.3_r)
+```
+
+### Back to the Model Plot
+
+When we want to plot the results of fitting an interaction model, it is best to fit the model using the colon notation and, if you have categorical predictors, not using dummy variables. You get the same plot regardless of the reference group, so we will plot the model without using the `relevel()` function:
+
+
+```{r}
+# Fit the interaction model
+lm.3 = lm(budget_millions ~ 1 + age + mpaa + age:mpaa, data = movies)
+```
+
+Note that this model uses the predictors `age` (which is quantitative) and `mpaa` which has the levels `PG`, `PG-13`, and `R`. When we set up our dataset to plot from these are the variables we need to use. We also need to use the EXACT levels that any categorical variables use. 
+
+```{r}
+plotData = expand.grid(
+  age = seq(from = 11, to = 78, by = 1),
+  mpaa = c("PG", "PG-13", "R")
+)
+
+head(plotData)
+```
+
+The interaction term is made up of these two predictors, so we don't have to create this term after the fact. We can just use the `predict()` function directly.
+
+```{r}
+plotData$yhat = predict(lm.3, newdata = plotData)
+head(plotData)
+```
+
+Now we can plot as we typically do.
+
+```{r}
+ggplot(data = plotData, aes(x = age, y = yhat, color = mpaa)) +
+  geom_line() +
+  theme_bw() +
+  xlab("Movie age") +
+  ylab("Predicted Budget") +
+  scale_color_brewer(name = "MPAA rating", palette = "Set2")
+```
+
+The plot allows us to more easily interpret the interaction. For example, the effect of age is negative for all three MPAA ratings, older movies tend to have a lower budget. The age effect for R rated movies seems shallower (less of an effect) than for PG and PG-13 rated movies, which seem to have a similar negative effect.
+
+Note that the lines cross within the plot. This is called a *disordinal* interaction. It is called disordinal because the order of the predicted budget for the different MPAA ratings change order depending on the year; it does not keep the same ordinality. For example, for movies less than thrty years old, PG-13 rated movies have a slightly higher predicted budget than PG rated movies which have a higher predicted budget than R rated movies. For movies that are between 40 and 50 years old, PG rated movies have the highest predicted budget, followed by PG-13 and R rated movies. It is also worth pointing out that the differences between the three average budgets (i.e., the variation in average budget) is smaller. For movies 55 years or older, R rated movies have the highest predicted budget, followed by PG rated movies and then PG-13 rated movies.
+
+If you wanted to know the exact ages where those lines cross, you could simultaneously solve the equations to find their point of intersction using algebra. (See [here](http://zonalandeducation.com/mmts/intersections/intersectionOfTwoLines1/intersectionOfTwoLines1.html) for example.) 
+
+
+# Check Model Assumptions
+
+Before we get too excited by the results, we need to examine the model assumptions. (Remember the potential issue with homogeneity of variance?)
+
+```{r}
+# Create fortified data
+fort_lm3 = fortify(lm.3)
+head(fort_lm3)
+
+# Examine normality assumption
+sm.density(fort_lm3$.stdresid, model = "normal", xlab = "Studentized Residuals")
+
+# Examine other assumptions
+ggplot(data = fort_lm3, aes(x = .fitted, y = .stdresid)) +
+  geom_point() +
+  geom_hline(yintercept = 0) +
+  geom_hline(yintercept = c(-3, 3), linetype = "dotted") +
+  geom_smooth(se = FALSE) +
+  theme_bw() +
+  xlab("Fitted Values") +
+  ylab("Studentized Residuals")
+```
+
+Based on the plots, linearity seems reasonable. However, the normality and homoskedasticity assumptions seem violated. We will learn how to deal with these issues when we learn about transforming data using logarithms,

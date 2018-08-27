@@ -1,0 +1,159 @@
+---
+title: "Mathematical Models for Log Transforms"
+author: "Andrew Zieffler"
+date: "April 27, 2016"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Learning Curve
+
+The learning curve, or negative acceleration model follows the same pattern as a logarithm. Consider a sequence of $X$-values and the resulting plot of $Y=\log(X)$. (For consistency with the previous notes, we use base-2, but any base would give the same basic pattern.)
+
+```{r echo=FALSE, out.width='4.5in'}
+x = seq(from = 0.1, to = 15, by = 0.1)
+y = log(x, base = 2)
+plot(y ~ x, type = "l")
+```
+
+Mathematically, this has the form,
+
+$$
+Y = \log (a \times X^b)
+$$
+
+where $a=1$ and $b=1$. What happens if we change the constants. Here are several lines showing what happens if we let $a$ vary. 
+
+```{r}
+y_2 = log((1/3)*x, base = 2)
+y_3 = log(0.5*x, base = 2)
+y2 = log(2*x, base = 2)
+y3 = log(3*x, base = 2)
+plot(y ~ x, type = "l", ylim = c(-5, 10), lwd = 2)
+lines(y2~x, lty = "dotted")
+lines(y3~x, lty = "dashed")
+lines(y_2~x, lty = "dashed", col = "red")
+lines(y_3~x, lty = "dotted", col = "red")
+```
+
+Here are the equations plotted:
+
+$$
+\begin{split}
+Y &= \log (3 \times X^{1}) \quad\mathrm{dashed, black}\\
+Y &= \log (2 \times X^{1}) \quad\mathrm{dotted, black}\\
+Y &= \log (1 \times X^{1}) \quad\mathrm{solid, black, thick} \\
+Y &= \log (0.67 \times X^{1}) \quad\mathrm{dashed, red}\\
+Y &= \log (0.5 \times X^{1}) \quad\mathrm{dashed, red}
+\end{split}
+$$
+
+The value of $a$ shifts the curves up ($a>1$) or down ($a<1$). It is akin to changing the $y$-intercept. What happens when we vary $b$?
+
+```{r}
+y_2 = log(x^0.5, base = 2)
+y_3 = log(x^0.67, base = 2)
+y2 = log(x^2, base = 2)
+y3 = log(x^3, base = 2)
+plot(y ~ x, type = "l", ylim = c(-5, 10), lwd = 2)
+lines(y2~x, lty = "dotted")
+lines(y3~x, lty = "dashed")
+lines(y_2~x, lty = "dashed", col = "red")
+lines(y_3~x, lty = "dotted", col = "red")
+```
+
+Here are the equations plotted:
+
+$$
+\begin{split}
+Y &= \log (1 \times X^{3}) \quad\mathrm{dashed, black}\\
+Y &= \log (1 \times X^{2}) \quad\mathrm{dotted, black}\\
+Y &= \log (1 \times X^{1}) \quad\mathrm{solid, black, thick} \\
+Y &= \log (1 \times X^{0.67}) \quad\mathrm{dashed, red}\\
+Y &= \log (1 \times X^{0.5}) \quad\mathrm{dashed, red}
+\end{split}
+$$
+
+The parameter $b$ is called the learning rate, and it affects how quickly the curve grows and decelerates.
+
+# Writing the Model
+
+We are going to make a couple substitutions to make the resulting mathematics a bit nicer. Since $a$ is a constant, we can write it however we want. So, we will substitute the expression $2^{\beta_0}$ in for $a$. Also, instead of $b$ we are going to use the term $\beta_1$. Then the mathematical model is:
+
+$$
+Y = \log (2^{\beta_0} \times X^{\beta_1})
+$$
+
+Adding the residuals gives us the statistical model,
+
+$$
+Y = \log (2^{\beta_0} \times X^{\beta_1}) + \epsilon
+$$
+
+where $2^{\beta_0}$ gives the shift up or down, and $\beta_1$ is the learning rate.
+
+## Linearizing the Model
+
+To understand how we fit this, we will do some algebra to transform this equation. You will need to understand the rules of logarithms to follow this. Also remember that we are using base-2 for our logarithm.
+
+$$
+\begin{split}
+Y &= \log (2^{\beta_0} \times X^{\beta_1}) + \epsilon \\
+&= \log (2^{\beta_0}) + \log (X^{\beta_1}) + \epsilon \\
+&= \beta_0 \left[\log (2)\right] + \beta_1\left[\log (X)\right] + \epsilon \\
+&= \beta_0 + \beta_1\left[\log (X)\right] + \epsilon
+\end{split}
+$$
+
+This means we can linearize this function by fitting a linear model that uses the logarithm of $X$ to predict variation in $Y$.
+
+# Exponential Growth Model
+
+The exponential growth model is a power function and is mathematically expressed as,
+
+$$
+Y = a \times e^{bX}
+$$
+
+The basic pattern is
+
+```{r echo=FALSE, out.width='4.5in'}
+x = seq(from = 0.1, to = 15, by = 0.1)
+y = exp(x)
+plot(y ~ x, type = "l")
+```
+
+For mathematical convenience we will let $a=e^{\beta_0}$ and $b=\beta_1$. Here we use base-$e$, but again, any base would work.
+
+$$
+Y = e^{\beta_0} \times e^{\beta_1(X)}
+$$
+
+
+To simplify this we take the natural logarithm of both sides of the equation, and simplify using the rules of logarithms.
+
+$$
+\begin{split}
+\ln Y &= \ln\left[e^{\beta_0} \times e^{\beta_1(X)}\right] \\
+&=\ln\left[e^{\beta_0}\right] + \ln\left[e^{\beta_1(X)}\right] \\
+&= \beta_0 + \beta_1(X)
+\end{split}
+$$
+
+Note including error terms in the final linearized model, leads to,
+
+$$
+\ln Y = \beta_0 + \beta_1(X) + \epsilon
+$$
+
+This implies that the initial statistical model has the follwing form,
+
+$$
+Y = e^{\beta_0} \times e^{\beta_1(X) + \epsilon}
+$$
+
+
+

@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+
+<meta name="progressive" content="false" />
+<meta name="allow-skip" content="false" />
+
+<title>Least Squares Estimation</title>
+
+
+<!-- highlightjs -->
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs && document.readyState && document.readyState === "complete") {
+   window.setTimeout(function() {
+      hljs.initHighlighting();
+   }, 0);
+}
+</script>
+
+
+
+</head>
+
+<body>
+
+
+
+<div class="pageContent band">
+<div class="bandContent page">
+
+<div class="topics">
+
+<div id="section-preparation" class="section level2">
+<h2>Preparation</h2>
+<p>First we will read in the <code>riverside.csv</code> data and load the <code>ggplot2</code> library.</p>
+<pre class="r"><code># Read in data
+city = read.csv(file = &quot;~/Dropbox/epsy-8251/data/riverside.csv&quot;)
+city</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["education"],"name":[1],"type":["int"],"align":["right"]},{"label":["income"],"name":[2],"type":["int"],"align":["right"]},{"label":["seniority"],"name":[3],"type":["int"],"align":["right"]},{"label":["gender"],"name":[4],"type":["fctr"],"align":["left"]},{"label":["male"],"name":[5],"type":["int"],"align":["right"]},{"label":["party"],"name":[6],"type":["fctr"],"align":["left"]}],"data":[{"1":"8","2":"37449","3":"7","4":"male","5":"1","6":"Democrat"},{"1":"8","2":"26430","3":"9","4":"female","5":"0","6":"Independent"},{"1":"10","2":"47034","3":"14","4":"male","5":"1","6":"Democrat"},{"1":"10","2":"34182","3":"16","4":"female","5":"0","6":"Independent"},{"1":"10","2":"25479","3":"1","4":"female","5":"0","6":"Republican"},{"1":"12","2":"46488","3":"11","4":"female","5":"0","6":"Democrat"},{"1":"12","2":"37656","3":"14","4":"male","5":"1","6":"Democrat"},{"1":"12","2":"50265","3":"24","4":"male","5":"1","6":"Democrat"},{"1":"12","2":"52480","3":"16","4":"female","5":"0","6":"Independent"},{"1":"14","2":"32631","3":"5","4":"female","5":"0","6":"Independent"},{"1":"14","2":"49968","3":"18","4":"male","5":"1","6":"Independent"},{"1":"14","2":"64926","3":"26","4":"male","5":"1","6":"Independent"},{"1":"15","2":"37302","3":"8","4":"female","5":"0","6":"Democrat"},{"1":"16","2":"55782","3":"6","4":"male","5":"1","6":"Democrat"},{"1":"16","2":"63471","3":"10","4":"male","5":"1","6":"Democrat"},{"1":"16","2":"38586","3":"11","4":"female","5":"0","6":"Independent"},{"1":"16","2":"55878","3":"22","4":"female","5":"0","6":"Independent"},{"1":"16","2":"59499","3":"20","4":"female","5":"0","6":"Independent"},{"1":"17","2":"60068","3":"10","4":"female","5":"0","6":"Independent"},{"1":"18","2":"54840","3":"20","4":"female","5":"0","6":"Republican"},{"1":"18","2":"62466","3":"16","4":"female","5":"0","6":"Republican"},{"1":"19","2":"56019","3":"21","4":"female","5":"0","6":"Independent"},{"1":"19","2":"65142","3":"16","4":"male","5":"1","6":"Republican"},{"1":"20","2":"56343","3":"22","4":"female","5":"0","6":"Independent"},{"1":"20","2":"54672","3":"12","4":"female","5":"0","6":"Independent"},{"1":"20","2":"61629","3":"5","4":"male","5":"1","6":"Republican"},{"1":"20","2":"82726","3":"23","4":"male","5":"1","6":"Republican"},{"1":"21","2":"71202","3":"26","4":"female","5":"0","6":"Democrat"},{"1":"21","2":"73542","3":"16","4":"male","5":"1","6":"Republican"},{"1":"22","2":"56322","3":"8","4":"female","5":"0","6":"Independent"},{"1":"22","2":"70044","3":"14","4":"male","5":"1","6":"Independent"},{"1":"24","2":"79227","3":"27","4":"male","5":"1","6":"Democrat"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<pre class="r"><code># Load libraries
+library(ggplot2)
+library(dplyr)</code></pre>
+<p>Then we will regress income on education level.</p>
+<pre class="r"><code># Fit regression model
+lm.1 = lm(income ~ 1 + education, data = city)
+lm.1</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = income ~ 1 + education, data = city)
+## 
+## Coefficients:
+## (Intercept)    education  
+##       11321         2651</code></pre>
+<p>The fitted regression equation is</p>
+<p><span class="math display">\[
+\hat{\mathrm{Income}} = 11,321 + 2,651(\mathrm{Education~Level})
+\]</span></p>
+<p>How does R determine the coefficient values of <span class="math inline">\(\hat{\beta}_0=11,321\)</span> and <span class="math inline">\(\hat{\beta}_1=2,651\)</span>? These values are estimated from the data using a method called <em>Ordinary Least Squares</em> (OLS).</p>
+</div>
+<div id="section-understanding-ols" class="section level2">
+<h2>Understanding OLS</h2>
+<p>To understand how Ordinary Least Squares (OLS) works, consider the following toy data set of five observations:</p>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["x"],"name":[1],"type":["dbl"],"align":["right"]},{"label":["y"],"name":[2],"type":["dbl"],"align":["right"]}],"data":[{"1":"3","2":"63"},{"1":"1","2":"44"},{"1":"3","2":"40"},{"1":"5","2":"68"},{"1":"2","2":"25"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<p>Which of the following two models fits these data better?</p>
+<ul>
+<li><em>Model A:</em> <span class="math inline">\(\hat{Y} = 28 + 8(X)\)</span></li>
+<li><em>Model B:</em> <span class="math inline">\(\hat{Y} = 20 + 10(X)\)</span></li>
+</ul>
+<p>We could plot the data and both lines and try to determine which seems to fit better. The plot below shows the observed data, the line for Model A (solid, black), and the line for Model B (dashed, blue)</p>
+<p><img src="Least_Squares_files/figure-html/unnamed-chunk-4-1.png" width="80%" /></p>
+<div id="section-measuring-fit-or-misfit" class="section level3">
+<h3>Measuring Fit (or Misfit)</h3>
+<p>In this case, the lines are similar and it is difficult to make a determination of which fits the data better by eyeballing the two plots. Instead of guessing which model fits better, we can actually quantify the fit to the data by computing the residuals (errors) for each model and then compare both sets of residuals; larger errors indicate a worse fitting model (i.e., more misfit to the data).</p>
+<p>Remember, to compute the residuals, we will first need to compute the predicted value (<span class="math inline">\(\hat{Y}_i\)</span>) for each of the five observations for both models.</p>
+<table style="width:44%;">
+<caption>Predicted values and residuals for Model A</caption>
+<colgroup>
+<col width="5%" />
+<col width="5%" />
+<col width="16%" />
+<col width="16%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="center">x</th>
+<th align="center">y</th>
+<th align="center">Predicted</th>
+<th align="center">Residual</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="center">3</td>
+<td align="center">63</td>
+<td align="center">52</td>
+<td align="center">11</td>
+</tr>
+<tr class="even">
+<td align="center">1</td>
+<td align="center">44</td>
+<td align="center">36</td>
+<td align="center">8</td>
+</tr>
+<tr class="odd">
+<td align="center">3</td>
+<td align="center">40</td>
+<td align="center">52</td>
+<td align="center">-12</td>
+</tr>
+<tr class="even">
+<td align="center">5</td>
+<td align="center">68</td>
+<td align="center">68</td>
+<td align="center">0</td>
+</tr>
+<tr class="odd">
+<td align="center">2</td>
+<td align="center">25</td>
+<td align="center">44</td>
+<td align="center">-19</td>
+</tr>
+</tbody>
+</table>
+<p>The residuals are visualized as the vertical distance between the observed data and the prediction line.</p>
+<p><img src="Least_Squares_files/figure-html/unnamed-chunk-6-1.png" width="624" /></p>
+<table style="width:44%;">
+<caption>Predicted values and residuals for Model B</caption>
+<colgroup>
+<col width="5%" />
+<col width="5%" />
+<col width="16%" />
+<col width="16%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="center">x</th>
+<th align="center">y</th>
+<th align="center">Predicted</th>
+<th align="center">Residual</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="center">3</td>
+<td align="center">63</td>
+<td align="center">50</td>
+<td align="center">13</td>
+</tr>
+<tr class="even">
+<td align="center">1</td>
+<td align="center">44</td>
+<td align="center">30</td>
+<td align="center">14</td>
+</tr>
+<tr class="odd">
+<td align="center">3</td>
+<td align="center">40</td>
+<td align="center">50</td>
+<td align="center">-10</td>
+</tr>
+<tr class="even">
+<td align="center">5</td>
+<td align="center">68</td>
+<td align="center">70</td>
+<td align="center">-2</td>
+</tr>
+<tr class="odd">
+<td align="center">2</td>
+<td align="center">25</td>
+<td align="center">40</td>
+<td align="center">-15</td>
+</tr>
+</tbody>
+</table>
+<p>We can again visualize the residuals.</p>
+<p><img src="Least_Squares_files/figure-html/unnamed-chunk-8-1.png" width="624" /></p>
+<p>Which model has the smaller residuals? Eyeballing the numeric values of the residuals is problematic. The size of the residuals is similar for both Models. Also, the eyeballing method would be impractical for larger datasets. So, we have to further quantify the model fit (or misfit). The way we do that in practice is to consider the <em>total</em> amount of error across all the observations.</p>
+</div>
+<div id="section-sum-of-squared-errors" class="section level3">
+<h3>Sum of Squared Errors</h3>
+<p>It would be reasonable to think about T]the total amount of error as a sum. Unfortunately, since some of our residuals are negative and some are positive, the sum can be misleading. A sum can also be influenced by single values. Consider two models that produce the following residuals for <span class="math inline">\(n=3\)</span> observations.</p>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["Residuals_Model_A"],"name":[1],"type":["dbl"],"align":["right"]},{"label":["Residuals_Model_B"],"name":[2],"type":["dbl"],"align":["right"]}],"data":[{"1":"2","2":"25"},{"1":"-1","2":"25"},{"1":"3","2":"-50"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<p>It is clear that Model A produces smaller residuals and fits better. However, is we summed the residuals, Model B has a sum of zero (which is smaller than Model A’s sum of four).</p>
+<p>One way to alleviate this issue is to take the absolute value of each residual before we sum. Unfortunately, absolute values functions are problematic when we differentiate them (which is how we optimize). An alternative method to deal with this same problem is to square each residual before summing them. This is the method that was adopted by Gauss when he proposed OLS many years ago.</p>
+<p><span class="math display">\[
+\begin{split}
+\mathrm{Total~Error} &amp;= \sum \hat{\epsilon_i}^2 \\
+&amp;= \sum \left( Y_i - \hat{Y}_i \right)^2
+\end{split}
+\]</span></p>
+<p>This is called a <em>sum of squared residuals</em> or <em>sum of squared error</em> (SSE; good name, isn’t it). Compute the SSE for the residuals from Model A and Model B.</p>
+<p><br /><br /></p>
+<p><span class="math inline">\(\mathrm{SSE}_{\mathrm{Model~A}}=\\[1.5em]\)</span></p>
+<p><br /><br /><br /></p>
+<p><span class="math inline">\(\mathrm{SSE}_{\mathrm{Model~B}}=\)</span></p>
+<p><br /><br /><br /></p>
+<p>Once we have quantified the model misfit, we can choose the model that has the least amount of error. Since Model A has a lower SSE than Model B, we would conclude that Model A is the better fitting model to the data.</p>
+</div>
+</div>
+<div id="section-optimization" class="section level2">
+<h2>Optimization</h2>
+<p>In the vocabulary of statistical estimation, the process we just used to adopt Model A over Model B was composed of two parts:</p>
+<ul>
+<li><strong>Quantification of Model Fit:</strong> We quantify how well (or not well) the estimated equation fits the data; and</li>
+<li><strong>Optimization:</strong> We find the “best” equation based on that quantification. (this boils down to finding the equation that produces the biggest or smallest measure of model fit.)</li>
+</ul>
+<p>In our example we used the SSE as the quantification of model fit, and then we optimized by selecting the model with the lower SSE. When we use <code>lm()</code> to fit a regression analysis to the data, R needs to consider not just two models, like we did in our example, but all potential models (i.e., any intercept and slope). The model coefficeints that <code>lm()</code> returns are the “best” in that no other values for intercept or slope would produce a lower SSE. The model returned has the lowest SSE possible thus <em>least squares</em>.</p>
+<p><div class="form-group shiny-input-container" style="width: 50%;">
+<label class="control-label" for="b0">Intercept=</label>
+<input class="js-range-slider" id="b0" data-min="0" data-max="10" data-from="2" data-step="0.1" data-grid="true" data-grid-num="10" data-grid-snap="false" data-prettify-separator="," data-prettify-enabled="true" data-keyboard="true" data-keyboard-step="1" data-data-type="number"/>
+</div><div class="form-group shiny-input-container" style="width: 50%;">
+<label class="control-label" for="b1">Slope=</label>
+<input class="js-range-slider" id="b1" data-min="-3" data-max="3" data-from="1" data-step="0.1" data-grid="true" data-grid-num="10" data-grid-snap="false" data-prettify-separator="," data-prettify-enabled="true" data-keyboard="true" data-keyboard-step="1.66666666666667" data-data-type="number"/>
+</div><div id="ssePlot" class="shiny-plot-output" style="width: 100% ; height: 400px"></div></p>
+<p>For our toy dataset, the model that produces the smallest residuals is</p>
+<p><span class="math display">\[
+\hat{Y} = 28.682 + 8.614(X)
+\]</span></p>
+<p>This model gives the following residuals:</p>
+<table style="width:44%;">
+<caption>Predicted values and residuals for the ‘best’ fitting model.</caption>
+<colgroup>
+<col width="5%" />
+<col width="5%" />
+<col width="16%" />
+<col width="16%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="center">x</th>
+<th align="center">y</th>
+<th align="center">Predicted</th>
+<th align="center">Residual</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="center">3</td>
+<td align="center">63</td>
+<td align="center">49.61</td>
+<td align="center">13.39</td>
+</tr>
+<tr class="even">
+<td align="center">1</td>
+<td align="center">44</td>
+<td align="center">33.48</td>
+<td align="center">10.52</td>
+</tr>
+<tr class="odd">
+<td align="center">3</td>
+<td align="center">40</td>
+<td align="center">49.61</td>
+<td align="center">-9.614</td>
+</tr>
+<tr class="even">
+<td align="center">5</td>
+<td align="center">68</td>
+<td align="center">65.75</td>
+<td align="center">2.25</td>
+</tr>
+<tr class="odd">
+<td align="center">2</td>
+<td align="center">25</td>
+<td align="center">41.55</td>
+<td align="center">-16.55</td>
+</tr>
+</tbody>
+</table>
+<p>The SSE is 661.16. This is the smallest SSE possible for a linear model. Any other value for the slope or intercept would result in a higher SSE.</p>
+<p>Finding the the intercept and slope that give the lowest SSE is referred to as an optimization problem in the field of mathematics. Optimization is such an important (and sometimes difficult) probelm that there have been several mathematical and computational optimization methods that have been developed over the years. You can <a href="https://en.wikipedia.org/wiki/Mathematical_optimization">read more about mathematical optimization on Wikipedia</a> if you are interested.</p>
+<p>One common mathematical method to find the minimum SSE involves calculus. We would write the SSE as a function of <span class="math inline">\(\beta_0\)</span> and <span class="math inline">\(\beta_1\)</span>, compute the partial derivatives (w.r.t. each of the coefficients), set these equal to zero, and solve to find the values of the coefficients. You can read <a href="https://isites.harvard.edu/fs/docs/icb.topic515975.files/OLSDerivation.pdf">here</a>. The <code>lm()</code> function actually uses an optimization method called <a href="https://en.wikipedia.org/wiki/QR_decomposition">QR decomposition</a> to obtain the regression coefficients. The actual mechanics and computation of these methods are beyond the scope of this course. We will just trust that the <code>lm()</code> function is doing things correctly in this course.</p>
+</div>
+<div id="section-computing-the-sse" class="section level2">
+<h2>Computing the SSE</h2>
+<p>Since the regression model is based on the lowest SSE, it is often useful to compute and report the model’s SSE. We can use R to compute the SSE by carrying out the computations underlying the formula for SSE. Recall that the SSE is</p>
+<p><span class="math display">\[
+\mathrm{SSE} = \sum \left( Y_i - \hat{Y}_i\right)^2
+\]</span></p>
+<p>We need to compute (1) the predicted values of <span class="math inline">\(Y\)</span>, (2) the residuals, (3) the squared residuals, and finally, (4) the sum ofthe squared residuals. From the data set we have the observed <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span> values, and from the fitted <code>lm()</code> we have the intercept and slope for the regression equation.</p>
+<pre class="r"><code># Step 1: Compute the predicted values of Y
+city %&gt;% 
+  select( income, education ) %&gt;%
+  mutate( y_hat = 11321 + 2651 * education )</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["income"],"name":[1],"type":["int"],"align":["right"]},{"label":["education"],"name":[2],"type":["int"],"align":["right"]},{"label":["y_hat"],"name":[3],"type":["dbl"],"align":["right"]}],"data":[{"1":"37449","2":"8","3":"32529"},{"1":"26430","2":"8","3":"32529"},{"1":"47034","2":"10","3":"37831"},{"1":"34182","2":"10","3":"37831"},{"1":"25479","2":"10","3":"37831"},{"1":"46488","2":"12","3":"43133"},{"1":"37656","2":"12","3":"43133"},{"1":"50265","2":"12","3":"43133"},{"1":"52480","2":"12","3":"43133"},{"1":"32631","2":"14","3":"48435"},{"1":"49968","2":"14","3":"48435"},{"1":"64926","2":"14","3":"48435"},{"1":"37302","2":"15","3":"51086"},{"1":"55782","2":"16","3":"53737"},{"1":"63471","2":"16","3":"53737"},{"1":"38586","2":"16","3":"53737"},{"1":"55878","2":"16","3":"53737"},{"1":"59499","2":"16","3":"53737"},{"1":"60068","2":"17","3":"56388"},{"1":"54840","2":"18","3":"59039"},{"1":"62466","2":"18","3":"59039"},{"1":"56019","2":"19","3":"61690"},{"1":"65142","2":"19","3":"61690"},{"1":"56343","2":"20","3":"64341"},{"1":"54672","2":"20","3":"64341"},{"1":"61629","2":"20","3":"64341"},{"1":"82726","2":"20","3":"64341"},{"1":"71202","2":"21","3":"66992"},{"1":"73542","2":"21","3":"66992"},{"1":"56322","2":"22","3":"69643"},{"1":"70044","2":"22","3":"69643"},{"1":"79227","2":"24","3":"74945"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<pre class="r"><code># Step 2: Compute the residuals
+city %&gt;% 
+  select( income, education ) %&gt;%
+  mutate( y_hat = 11321 + 2651 * education ) %&gt;% 
+  mutate( errors = income - y_hat )</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["income"],"name":[1],"type":["int"],"align":["right"]},{"label":["education"],"name":[2],"type":["int"],"align":["right"]},{"label":["y_hat"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["errors"],"name":[4],"type":["dbl"],"align":["right"]}],"data":[{"1":"37449","2":"8","3":"32529","4":"4920"},{"1":"26430","2":"8","3":"32529","4":"-6099"},{"1":"47034","2":"10","3":"37831","4":"9203"},{"1":"34182","2":"10","3":"37831","4":"-3649"},{"1":"25479","2":"10","3":"37831","4":"-12352"},{"1":"46488","2":"12","3":"43133","4":"3355"},{"1":"37656","2":"12","3":"43133","4":"-5477"},{"1":"50265","2":"12","3":"43133","4":"7132"},{"1":"52480","2":"12","3":"43133","4":"9347"},{"1":"32631","2":"14","3":"48435","4":"-15804"},{"1":"49968","2":"14","3":"48435","4":"1533"},{"1":"64926","2":"14","3":"48435","4":"16491"},{"1":"37302","2":"15","3":"51086","4":"-13784"},{"1":"55782","2":"16","3":"53737","4":"2045"},{"1":"63471","2":"16","3":"53737","4":"9734"},{"1":"38586","2":"16","3":"53737","4":"-15151"},{"1":"55878","2":"16","3":"53737","4":"2141"},{"1":"59499","2":"16","3":"53737","4":"5762"},{"1":"60068","2":"17","3":"56388","4":"3680"},{"1":"54840","2":"18","3":"59039","4":"-4199"},{"1":"62466","2":"18","3":"59039","4":"3427"},{"1":"56019","2":"19","3":"61690","4":"-5671"},{"1":"65142","2":"19","3":"61690","4":"3452"},{"1":"56343","2":"20","3":"64341","4":"-7998"},{"1":"54672","2":"20","3":"64341","4":"-9669"},{"1":"61629","2":"20","3":"64341","4":"-2712"},{"1":"82726","2":"20","3":"64341","4":"18385"},{"1":"71202","2":"21","3":"66992","4":"4210"},{"1":"73542","2":"21","3":"66992","4":"6550"},{"1":"56322","2":"22","3":"69643","4":"-13321"},{"1":"70044","2":"22","3":"69643","4":"401"},{"1":"79227","2":"24","3":"74945","4":"4282"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<pre class="r"><code># Step 3: Compute the squared residuals
+city %&gt;% 
+  select( income, education ) %&gt;%
+  mutate( y_hat = 11321 + 2651 * education ) %&gt;% 
+  mutate( errors = income - y_hat ) %&gt;%
+  mutate( sq_errors = errors ^ 2 )</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["income"],"name":[1],"type":["int"],"align":["right"]},{"label":["education"],"name":[2],"type":["int"],"align":["right"]},{"label":["y_hat"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["errors"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["sq_errors"],"name":[5],"type":["dbl"],"align":["right"]}],"data":[{"1":"37449","2":"8","3":"32529","4":"4920","5":"24206400"},{"1":"26430","2":"8","3":"32529","4":"-6099","5":"37197801"},{"1":"47034","2":"10","3":"37831","4":"9203","5":"84695209"},{"1":"34182","2":"10","3":"37831","4":"-3649","5":"13315201"},{"1":"25479","2":"10","3":"37831","4":"-12352","5":"152571904"},{"1":"46488","2":"12","3":"43133","4":"3355","5":"11256025"},{"1":"37656","2":"12","3":"43133","4":"-5477","5":"29997529"},{"1":"50265","2":"12","3":"43133","4":"7132","5":"50865424"},{"1":"52480","2":"12","3":"43133","4":"9347","5":"87366409"},{"1":"32631","2":"14","3":"48435","4":"-15804","5":"249766416"},{"1":"49968","2":"14","3":"48435","4":"1533","5":"2350089"},{"1":"64926","2":"14","3":"48435","4":"16491","5":"271953081"},{"1":"37302","2":"15","3":"51086","4":"-13784","5":"189998656"},{"1":"55782","2":"16","3":"53737","4":"2045","5":"4182025"},{"1":"63471","2":"16","3":"53737","4":"9734","5":"94750756"},{"1":"38586","2":"16","3":"53737","4":"-15151","5":"229552801"},{"1":"55878","2":"16","3":"53737","4":"2141","5":"4583881"},{"1":"59499","2":"16","3":"53737","4":"5762","5":"33200644"},{"1":"60068","2":"17","3":"56388","4":"3680","5":"13542400"},{"1":"54840","2":"18","3":"59039","4":"-4199","5":"17631601"},{"1":"62466","2":"18","3":"59039","4":"3427","5":"11744329"},{"1":"56019","2":"19","3":"61690","4":"-5671","5":"32160241"},{"1":"65142","2":"19","3":"61690","4":"3452","5":"11916304"},{"1":"56343","2":"20","3":"64341","4":"-7998","5":"63968004"},{"1":"54672","2":"20","3":"64341","4":"-9669","5":"93489561"},{"1":"61629","2":"20","3":"64341","4":"-2712","5":"7354944"},{"1":"82726","2":"20","3":"64341","4":"18385","5":"338008225"},{"1":"71202","2":"21","3":"66992","4":"4210","5":"17724100"},{"1":"73542","2":"21","3":"66992","4":"6550","5":"42902500"},{"1":"56322","2":"22","3":"69643","4":"-13321","5":"177449041"},{"1":"70044","2":"22","3":"69643","4":"401","5":"160801"},{"1":"79227","2":"24","3":"74945","4":"4282","5":"18335524"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<pre class="r"><code># Step 4: Compute the sum of the squared residuals
+city %&gt;% 
+  select( income, education ) %&gt;%
+  mutate( y_hat = 11321 + 2651 * education ) %&gt;% 
+  mutate( errors = income - y_hat ) %&gt;%
+  mutate( sq_errors = errors ^ 2 ) %&gt;%
+  summarize( SSE = sum(sq_errors) )</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["SSE"],"name":[1],"type":["dbl"],"align":["right"]}],"data":[{"1":"2418197826"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<p>We could also do this computation by combining the computations in the <code>mutate()</code> functions into the <code>summarize()</code> function directly. (Note that the <code>select()</code> function is completely unnecessary.)</p>
+<pre class="r"><code>city %&gt;% 
+  summarize( SSE = sum( (income - (11321 + 2651 * education) ) ^ 2 ) )</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["SSE"],"name":[1],"type":["dbl"],"align":["right"]}],"data":[{"1":"2418197826"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+</div>
+<div id="section-interpreting-sse" class="section level2">
+<h2>Interpreting SSE</h2>
+<p>The SSE gives us information about the variation in <span class="math inline">\(Y\)</span> that is left over (residual) after we fit the regression model. Since the regression model is a function of <span class="math inline">\(X\)</span>, the SSE tells us about the variation in <span class="math inline">\(Y\)</span> that is left over after we remove the variation associated with, or accounted for by <span class="math inline">\(X\)</span>. In our example it tells us about the residual variation in incomes after we account for employee education level.</p>
+<p>In practice, we often report the SSE, but <em>we do not interpret the actual value</em>. The value of the SSE is more useful when comparing models. When researchers are considering different models, the SSEs from these models are compared to determine which model produces the least amount of misfit to the data (similar to what we did earlier).</p>
+<div id="section-intercept-only-model" class="section level3">
+<h3>Intercept-Only Model</h3>
+<p>Consider the equation for the linear model again,</p>
+<p><span class="math display">\[
+Y_i = \beta_0 + \beta_1(X_i) + \epsilon_i.
+\]</span></p>
+<p>A simpler model (one with fewer terms) would be,</p>
+<p><span class="math display">\[
+Y_i = \beta_0 + \epsilon_i.
+\]</span></p>
+<p>This model, referred to as the <em>intercept-only model</em> or the <em>baseline model</em>, does not include the effect of <span class="math inline">\(X\)</span>. The value of <span class="math inline">\(Y\)</span> is not a function of <span class="math inline">\(X\)</span> in this model; it is not conditional on <span class="math inline">\(X\)</span>. The fitted equation,</p>
+<p><span class="math display">\[
+\hat{Y}_i = \hat{\beta}_0
+\]</span></p>
+<p>indicates that the predicted <span class="math inline">\(Y\)</span> would be the same (constant) regardless of what <span class="math inline">\(X\)</span> is. In our example, this would be equivalent to saying that an employees’ incomes would be predicted to be the same, regardless of what their education level was.</p>
+<p>To fit the intercept-only model, we just omit the prediter term on the right-hand side of the <code>lm()</code> formula.</p>
+<pre class="r"><code>lm.0 = lm(income ~ 1, data = city)
+lm.0</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = income ~ 1, data = city)
+## 
+## Coefficients:
+## (Intercept)  
+##       53742</code></pre>
+<p>The fitted regression equation for the intercept-only model can be written as,</p>
+<p><span class="math display">\[
+\hat{\mathrm{Income}} = 53,742
+\]</span></p>
+<p>Graphically, the fitted line is a flat line crossing the <span class="math inline">\(y\)</span>-axis at 53,742 (see plot below).</p>
+<p><img src="Least_Squares_files/figure-html/unnamed-chunk-16-1.png" width="80%" /></p>
+<p>Does the estimate for <span class="math inline">\(\beta_0\)</span>, 53,742, seem familiar?</p>
+<pre class="r"><code>city %&gt;% summarize( M = mean(income) )</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["M"],"name":[1],"type":["dbl"],"align":["right"]}],"data":[{"1":"53742.12"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<p>The estimated intercept in the intercept-only model is the mean value of the response variable. This is not a coincidence. Remember that the regression model estimates the mean,</p>
+<p><span class="math display">\[
+E(Y) = \beta_0.
+\]</span></p>
+<p>Here, <span class="math inline">\(E(Y)\)</span> is the mean, <span class="math inline">\(\mu_Y\)</span>. The model itself does not consider any predictors, so on the plot the <span class="math inline">\(X\)</span> variable is superfluous; we could just collapse it to its margin. This is why the mean of all the <span class="math inline">\(Y\)</span> values is sometimes referred to as the <em>marginal mean</em>.</p>
+<p><img src="Least_Squares_files/figure-html/unnamed-chunk-18-1.png" width="80%" /></p>
+<p>Yet another way to think about this value is that the model is choosing a single income (<span class="math inline">\(\hat{\beta}_0\)</span>) to be the predicted income for all the employees. Which value would be a good choice? Remember the <code>lm()</code> function chooses the “best” value for the parameter estimate based on minimizing the sum of squared errors. The mean is the value that minimizes the squared deviations (errors). This is one reason the mean is often used as a summary measure of a set of data.</p>
+</div>
+<div id="section-sse-for-the-intercept-only-model" class="section level3">
+<h3>SSE for the Intercept-Only Model</h3>
+<p>Since the intercept-only model does not include any predictors, the SSE is a quantification of the total variation in the response variable. It can be used as baseline measure of the error variation in the data. Below we compute the SSE for the intercept-only model (if you need to go through the steps one-at-a-time, do so.)</p>
+<pre class="r"><code>city %&gt;% 
+  summarize( SSE = sum( (income - mean(income) ) ^ 2 ) )</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["SSE"],"name":[1],"type":["dbl"],"align":["right"]}],"data":[{"1":"6565527426"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+</div>
+</div>
+<div id="section-proportion-reduction-in-error" class="section level2">
+<h2>Proportion Reduction in Error</h2>
+<p>The SSE for the intercept-only model represents the total amount of variation in the sample incomes. As such we can use it as a baseline for comparing other models that include predictors. For example,</p>
+<ul>
+<li><strong>SSE (Intercept-Only):</strong> 6,565,527,426</li>
+<li><strong>SSE (w/Education Level Predictor):</strong> 2,418,197,826</li>
+</ul>
+<p>Once we account for education in the model, we reduce the SSE. This means our predictions improve (they are closer to the observed <span class="math inline">\(Y\)</span> values). How much did they improve? They were reduced by 4,147,329,600. Is this a lot? To answer that question, we typically compute and report this reduction as a proportion of the total variation; called the <em>proportion of the reduction in error</em>, or PRE.</p>
+<p><span class="math display">\[
+\begin{split}
+\mathrm{PRE} &amp;= \frac{6,565,527,426 - 2,418,197,826}{6,565,527,426} \\
+&amp;= \frac{4,147,329,600}{6,565,527,426} \\
+&amp;= 0.632
+\end{split}
+\]</span></p>
+<p>To interpret this, we might say:</p>
+<blockquote>
+<p>Including education level as a predictor in the model reduced the error in the predictions by 63.2%.</p>
+</blockquote>
+<div id="section-pres-relationship-to-the-correlation-coefficient" class="section level3">
+<h3>PRE’s Relationship to the Correlation Coefficient</h3>
+<p>The PRE also has a direct relationship to the correlation coefficient. Namely, it is the square of the correlation coefficient,</p>
+<p><span class="math display">\[
+\mathrm{PRE} = r^2
+\]</span></p>
+<p>Try it out.</p>
+<pre class="r"><code>cor(city[c(&quot;income&quot;, &quot;education&quot;)]) ^ 2</code></pre>
+<pre><code>##              income education
+## income    1.0000000 0.6316828
+## education 0.6316828 1.0000000</code></pre>
+<p>Because of this, it is common for researchers to report the PRE as <span class="math inline">\(R^2\)</span>. In our example, <span class="math inline">\(R^2 = .632\)</span>. (For some reason, the notation we use when reporting the correlation coefficient uses a lower-case <span class="math inline">\(r\)</span>, while the notation for reporting the square of this value uses upper-case, <span class="math inline">\(R^2\)</span>.)</p>
+<p><span class="math inline">\(R^2\)</span>, like the correlation coeffcient, is related to the strength of the linear relationship. Variables that have stronger linear relationships have a higher <span class="math inline">\(r\)</span> value and thus higher <span class="math inline">\(R^2\)</span> values. Higher <span class="math inline">\(R^2\)</span> means more reduction in error, which implies better predictions. In a sense, it quantifies how good the model is, and because of this, <span class="math inline">\(R^2\)</span> is often provided as an <em>effect size</em> for regression analyses.</p>
+</div>
+</div>
+<div id="section-partitioning-variation" class="section level2">
+<h2>Partitioning Variation</h2>
+<p>Using the SSE terms we can partition the total variation in <span class="math inline">\(Y\)</span> (the SSE value from the intercept-only model) into two parts (1) the part that is explained by including education into the model, and (2) the part that remains unexplained. Part (2) is just the SSE from the regression model that includes <span class="math inline">\(X\)</span>. Here is the partitioning of the variation in income.</p>
+<p><span class="math display">\[
+\underbrace{6,565,527,426}_{\substack{\text{Total} \\ \text{Variation}}} = \underbrace{4,147,329,600}_{\substack{\text{Explained} \\ \text{Variation}}} + \underbrace{2,418,197,826}_{\substack{\text{Unexplained} \\ \text{Variation}}}
+\]</span></p>
+<p>Each of these three terms is a sum of squares (SS). The first is refereed to as the total sum of squares, as it represents the total amount of variation in <span class="math inline">\(Y\)</span>. The second term is commmonly called the regression sum of squares or model sum of squares, as it represents the variation explained by the model. The last term is the residual sum of squares (or error sum of squares) as it represents the left-over variation that is unexplained by the model.</p>
+<ul>
+<li><span class="math inline">\(\mathrm{SS_{\mathrm{Total}}} = 6,565,527,426\)</span></li>
+<li><span class="math inline">\(\mathrm{SS_{\mathrm{Model}}} = 4,147,329,600\)</span></li>
+<li><span class="math inline">\(\mathrm{SS_{\mathrm{Error}}} = 2,418,197,826\)</span></li>
+</ul>
+<p>More generally, we can partition the variation using</p>
+<p><span class="math display">\[
+\mathrm{SS_{\mathrm{Total}}} = \mathrm{SS_{\mathrm{Model}}} + \mathrm{SS_{\mathrm{Error}}}.
+\]</span></p>
+<p>We can visualize the total variation (<span class="math inline">\(\mathrm{SS_{\mathrm{Total}}}\)</span>) as the area of a rectangle. Then we will split that rectangle into two parts: the amount of variation that can be explained by including income in the model, and the amount of variation that is still unexplained.</p>
+<p><img src="Least_Squares_files/figure-html/unnamed-chunk-21-1.png" width="80%" /></p>
+<div id="section-partitioned-variation-as-a-proportion-of-the-total-variation" class="section level3">
+<h3>Partitioned Variation as a Proportion of the Total Variation</h3>
+<p>We can also express each part of the partitioned variation as a proportion of the total variation. To do this, divide each term in the expression of partitioned variation by <span class="math inline">\(\mathrm{SS_{\mathrm{Total}}}\)</span>.</p>
+<p><span class="math display">\[
+\frac{\mathrm{SS_{\mathrm{Total}}}}{\mathrm{SS_{\mathrm{Total}}}} = \frac{\mathrm{SS_{\mathrm{Model}}}}{\mathrm{SS_{\mathrm{Total}}}} + \frac{\mathrm{SS_{\mathrm{Error}}}}{\mathrm{SS_{\mathrm{Total}}}}
+\]</span></p>
+<p>Using the values for the sum of squares from the example,</p>
+<p><span class="math display">\[
+\frac{6,565,527,426}{6,565,527,426} = \frac{4,147,329,600}{6,565,527,426} + \frac{2,418,197,826}{6,565,527,426}
+\]</span></p>
+<p>Reducing this, we get</p>
+<p><span class="math display">\[
+1.000 = 0.632 + 0.368
+\]</span></p>
+<p>This says that of the total amount of variation (1.000), 63.2% is explained by the model (including education level as a predictor) and 36.8% is unexplained. Note that 0.632 is the same value we got for the PRE and <span class="math inline">\(R^2\)</span>. Thus, another way we can express <span class="math inline">\(R^2\)</span> mathematically is</p>
+<p><span class="math display">\[
+R^2 = \frac{\mathrm{SS_{\mathrm{Model}}}}{\mathrm{SS_{\mathrm{Total}}}}.
+\]</span></p>
+<p>This expression of <span class="math inline">\(R^2\)</span> leads to a natural interpretation for applied researchers. It is common for applied researchers to interpret the <span class="math inline">\(R^2\)</span> value as the percentage of <em>variation accounted for</em> in the outcome by the model. In our example, we might interpret the <span class="math inline">\(R^2\)</span> value of 0.632 as,</p>
+<blockquote>
+<p>The model accounts for 63.2% of the variation in incomes.</p>
+</blockquote>
+<p>Since the model uses the predictor of education level, it is useful to include this in the interpretation. For example,</p>
+<blockquote>
+<p>Differences in education level account for 63.2% of the variation in incomes.</p>
+</blockquote>
+</div>
+</div>
+<div id="section-resources" class="section level2">
+<h2>Resources</h2>
+<ul>
+<li>Here is an interactive website where you can play around with the intercept and slope of a line to visually understand the SSE: <a href="http://setosa.io/ev/ordinary-least-squares-regression/" class="uri">http://setosa.io/ev/ordinary-least-squares-regression/</a></li>
+</ul>
+
+<script type="application/shiny-prerendered" data-context="server-start">
+library(learnr)
+</script>
+ 
+<script type="application/shiny-prerendered" data-context="server">
+learnr:::register_http_handlers(session, metadata = NULL)
+</script>
+ 
+<script type="application/shiny-prerendered" data-context="server">
+output$ssePlot <- renderPlot({
+  
+  toy = data.frame(
+    x = c(3, 1, 3, 5, 0),
+    y = c(7, 4, 2, 3, -2)
+    )
+  x = c(3, 1, 3, 5, 0)
+  y = c(7, 4, 2, 3, -2)
+
+  y_hat = input$b0 + input$b1*x
+  residual = y - y_hat
+  sse = sum(residual ^ 2)
+
+  new = list()
+
+for(i in 1:length(x)){
+    if(residual[i] <= 0){
+      X = c(x[i], x[i], x[i] + abs(residual[i]), x[i] + abs(residual[i]))
+    } else{
+      X = c(x[i], x[i], x[i] - abs(residual[i]), x[i] - abs(residual[i]))
+    }
+
+    new[[i]] = data.frame(
+      X = X,
+      Y = c(y[i], y_hat[i], y_hat[i], y[i]),
+      id = paste0("Observation", i)
+  )  
+  
+}
+
+new = do.call(rbind, new)
+
+ggplot(data = new, aes(x = X, y = Y)) + 
+  geom_polygon(aes(group = id), fill = "red", alpha = 0.6, color = "black") + 
+  geom_point(data = toy, aes(x = x, y = y), size = 4) +
+  geom_abline(intercept = input$b0, slope = input$b1, color = "blue") +
+  theme_bw() +
+  ylim(-5, 10) +
+  xlim(-5, 10) +
+  annotate("text", x = -4, y = 10, label = paste0("SSE = ", sse), size = 8, hjust = 0)
+  
+})
+</script>
+ <!--html_preserve-->
+<script type="application/shiny-prerendered" data-context="dependencies">
+{"type":"list","attributes":{},"value":[{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["jquery"]},{"type":"character","attributes":{},"value":["1.11.3"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["rmd/h/jquery-1.11.3"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["jquery.min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["rmarkdown"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["bootstrap"]},{"type":"character","attributes":{},"value":["3.3.5"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["rmd/h/bootstrap-3.3.5"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["viewport"]}},"value":[{"type":"character","attributes":{},"value":["width=device-width, initial-scale=1"]}]},{"type":"character","attributes":{},"value":["js/bootstrap.min.js","shim/html5shiv.min.js","shim/respond.min.js"]},{"type":"character","attributes":{},"value":["css/cerulean.min.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["rmarkdown"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["pagedtable"]},{"type":"character","attributes":{},"value":["1.1"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["rmd/h/pagedtable-1.1"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["js/pagedtable.js"]},{"type":"character","attributes":{},"value":["css/pagedtable.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["rmarkdown"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["highlightjs"]},{"type":"character","attributes":{},"value":["1.1"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["rmd/h/highlightjs-1.1"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["highlight.js"]},{"type":"character","attributes":{},"value":["textmate.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["rmarkdown"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["tutorial"]},{"type":"character","attributes":{},"value":["0.9"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/tutorial"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["tutorial.js"]},{"type":"character","attributes":{},"value":["tutorial.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["tutorial-autocompletion"]},{"type":"character","attributes":{},"value":["0.9"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/tutorial"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["tutorial-autocompletion.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["tutorial-diagnostics"]},{"type":"character","attributes":{},"value":["0.9"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/tutorial"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["tutorial-diagnostics.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["tutorial-format"]},{"type":"character","attributes":{},"value":["0.9"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["rmarkdown/templates/tutorial/resources"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["tutorial-format.js"]},{"type":"character","attributes":{},"value":["tutorial-format.css","rstudio-theme.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["jquery"]},{"type":"character","attributes":{},"value":["1.11.3"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["rmd/h/jquery-1.11.3"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["jquery.min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["rmarkdown"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["font-awesome"]},{"type":"character","attributes":{},"value":["4.5.0"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["rmd/h/font-awesome-4.5.0"]}]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["css/font-awesome.min.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["rmarkdown"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["bootbox"]},{"type":"character","attributes":{},"value":["4.4.0"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/bootbox"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["bootbox.min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["localforage"]},{"type":"character","attributes":{},"value":["1.5"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/localforage"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["localforage.min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["tutorial"]},{"type":"character","attributes":{},"value":["0.9"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/tutorial"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["tutorial.js"]},{"type":"character","attributes":{},"value":["tutorial.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["tutorial-autocompletion"]},{"type":"character","attributes":{},"value":["0.9"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/tutorial"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["tutorial-autocompletion.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["tutorial-diagnostics"]},{"type":"character","attributes":{},"value":["0.9"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/tutorial"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["tutorial-diagnostics.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["ionrangeslider"]},{"type":"character","attributes":{},"value":["2.1.6"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["href"]}},"value":[{"type":"character","attributes":{},"value":["shared/ionrangeslider"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["js/ion.rangeSlider.min.js"]},{"type":"character","attributes":{},"value":["css/ion.rangeSlider.css","css/ion.rangeSlider.skinShiny.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["strftime"]},{"type":"character","attributes":{},"value":["0.9.2"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["href"]}},"value":[{"type":"character","attributes":{},"value":["shared/strftime"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["strftime-min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["ionrangeslider"]},{"type":"character","attributes":{},"value":["2.1.6"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["href"]}},"value":[{"type":"character","attributes":{},"value":["shared/ionrangeslider"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["js/ion.rangeSlider.min.js"]},{"type":"character","attributes":{},"value":["css/ion.rangeSlider.css","css/ion.rangeSlider.skinShiny.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["strftime"]},{"type":"character","attributes":{},"value":["0.9.2"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["href"]}},"value":[{"type":"character","attributes":{},"value":["shared/strftime"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["strftime-min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"logical","attributes":{},"value":[true]}]}]}
+</script>
+<!--/html_preserve-->
+</div>
+
+</div> <!-- topics -->
+
+<div class="topicsContainer">
+<div class="topicsPositioner">
+<div class="band">
+<div class="bandContent topicsListContainer">
+
+<!-- begin doc-metadata -->
+<div id="doc-metadata">
+<h2 class="title toc-ignore" style="display:none;">Least Squares Estimation</h2>
+</div>
+<!-- end doc-metadata -->
+
+</div> <!-- bandContent.topicsListContainer -->
+</div> <!-- band -->
+</div> <!-- topicsPositioner -->
+</div> <!-- topicsContainer -->
+
+
+</div> <!-- bandContent page -->
+</div> <!-- pageContent band -->
+
+
+
+
+<script>
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+</script>
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+
+</html>

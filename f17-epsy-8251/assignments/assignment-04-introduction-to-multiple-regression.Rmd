@@ -1,0 +1,83 @@
+---
+title: "Assignment 04"
+author: "Introduction to Multiple Regression"
+header-includes:
+   - \usepackage{xcolor}
+   - \definecolor{umn}{rgb}{0.1843137, 0.4509804, 0.5372549}
+output: 
+  pdf_document:
+    highlight: tango
+urlcolor: "umn"
+---
+
+Research. Teaching. Service. The trifecta upon which that almost every university instructor is evaluated, and, ultimately compensated. There has been substantial research to indicate that higher quality teaching is associated with increased faculty salararies. One way which academic administrators judge teaching quality is through teachers' course evaluations. While we know evaluation scores are not perfectly measures of teaching quality, nonetheless, they do play a role in the tenure and promotion process. Hamermesh &amp; Parker (2005) examined whether, adjusting for other determinants, whether instructor attractiveness explain differences in course evaluation scores---and thus on earnings differences. In this assignment, you will use a sample of their data to examine this question.
+
+
+Please submit your responses to each of the questions below in a printed document. Also, please adhere to the following guidelines for further formatting your assignment: 
+
+- All graphics should be resized so that they do not take up more room than necessary and should have an appropriate caption and labels. 
+- Any typed mathematics (equations, matrices, vectors, etc.) should be appropriately typeset within the document using Equation Editor, Markdown, or \LaTeX. 
+
+This assignment is worth 15 points. Each question is worth one point unless otherwise noted. 
+
+\rule{0.5\linewidth}{\linethickness}
+
+For this assignment, you will use the file *beauty.csv*. This file contains data collected from student evaluations of instructors' beauty and teaching quality for several courses at the University of Texas. The teaching evaluations were conducted at the end of the semester, and the beauty judgments were made later, by six students who had not attended the classes and were not aware of the course evaluations. The variables are:
+
+- `prof`: Professor ID number
+- `avgeval`: Average course rating
+- `btystdave`: Measure of the professor's beauty composed  of the average score on six standardized beauty ratings
+- `tenured`: 0 = non-tenured; 1 = tenured
+- `nonenglish`: 0 = native English speaker; 1 = non-native English speaker
+- `age`: Professor's age (in years)
+- `female`: 0 = male; 1 = female
+- `students`: Number of students enrolled in the course
+- `percentevaluating`: Percentage of enrolled students who completed an evaluation
+
+These source of these data is: Hamermesh, D. S. &amp; Parker, A. M. (2005). Beauty in the classroom: Instructors' pulchritude and putative pedagogical productivity. *Economics of Education Review, 24*, 369&ndash;376. The data were made available by: Gelman, A., &amp; Hill, J. (2007). *Data analysis using regression and multilevel/hierarchical models*. New York: Cambridge University Press. 
+\rule{0.5\linewidth}{\linethickness}
+
+# Preparation
+
+Fit the following regression models using R. You will use the output from the fitted models to answer the questions in the assignment.
+
+- Model 1: `avgeval ~ 1 + btystdave`
+- Model 2: `avgeval ~ 1 + btystdave + percentevaluating`
+- Model 3: `avgeval ~ 1 + btystdave + percentevaluating + students`
+
+\newpage
+
+1. Create a table that reports the results for the three regression models fitted in this assignment. This table should be similar in format and structure to the table of multiple regression you created in Assignment 2&mdash;with models in columns and predictors and model summaries in rows. Also, be sure that the table is appropriately captioned. If the table is too wide, change the page orientation in your word processing program to ``Landscape'', rather than changing the size of the font. **(2pts.)**
+
+2. Based on results presented in the regression table, explain why it would be appropriate to adopt Model 2.
+
+
+\vspace {2em}
+**Use the results from Model 2 to answer the remainder of the questions on this assignment.**
+\vspace {2em}
+
+# Description
+
+3. Report the regression equation from fitting Model 2. Use Equation Editor (or some other program that correctly types mathematical expressions) to typeset the equation correctly.
+
+4. Using output from the ANOVA table, compute and report the value for the model $R^2$. Show your work for full credit.
+
+5. Interpret the value of the model $R^2$ using the context of the data.
+
+6. Interpret each of the three coefficient values. **(2pts.)**
+
+# Model-Level Inference
+
+7. Using symbols, write the omnibus null hypothesis that is tested by the *F*-statistic in this analysis in two different manners: (1) using the coefficient parameters used in the regression model, and (2) using the variance accounted for parameter. **(2pts.)**
+
+8. Based on the results of the *F*-test, does the model explain variation in course evaluations? Explain.
+
+# Coefficient-Level Inference
+
+9. Using symbols, write the null hypothesis that is tested by the *t*-statistic for the `btystdave` coefficient.
+
+10. Based on the results of the *t*-test, what do the data suggest about the partial effect of beauty on course evaluations? Explain.
+
+# Displaying Results
+
+11. Create a publication quality plot that displays the results from Model 2. For this plot, put the beauty predictor on the *x*-axis. Show two separate lines to show the effect of the percentage of students evaluating the course (a small and large percentage). These lines should have different linetypes or use different colors so that they can easily be differentiated. **(2pts.)**

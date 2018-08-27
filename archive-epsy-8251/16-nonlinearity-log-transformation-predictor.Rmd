@@ -1,0 +1,978 @@
+---
+title: "Nonlinearity: Log-Transforming the Predictor"
+date: "`r Sys.Date()`"
+header-includes:
+   - \usepackage{xcolor}
+   - \usepackage[framemethod=tikz]{mdframed}
+   - \usepackage{graphicx}
+   - \usepackage{rotating}
+   - \usepackage{booktabs}
+   - \definecolor{umn}{RGB}{153, 0, 85}
+   - \definecolor{umn2}{rgb}{0.1843137, 0.4509804, 0.5372549}
+   - \definecolor{myorange}{HTML}{EA6153}
+output: 
+  pdf_document:
+    highlight: tango
+urlcolor: "umn2"
+bibliography: epsy8251.bib
+csl: apa-single-spaced.csl
+always_allow_html: yes
+---
+
+```{r knitr_init, echo=FALSE, cache=FALSE}
+library(knitr)
+library(rmdformats)
+
+## Global options
+options(max.print="75")
+opts_chunk$set(prompt=FALSE, comment=NA, message=FALSE, warning=FALSE, tidy=FALSE, fig.width=6, fig.height=6)
+opts_knit$set(width=85)
+options(scipen=5)
+```
+
+
+## Read in Data
+
+In this set of notes, you will learn another method of dealing with nonlinearity. Specifically, we will look at transforming the predictor using a nonlinear transformation. The data we will use in this set of notes, *mnSchools.csv*, contains institutional data for several Minnesota colleges and universities collected in 2011. The variables are:
+
+- `name`: College/university name
+- `gradRate`: Six-year graduation rate, as a percentage
+- `public`: Sector (1 = public college/university, 0 = private college/university)
+- `sat`: Estimated median composite SAT score
+- `tuition`: Amount of tuition and required fees covering a full academic year for a typical student, in U.S. dollars
+
+These source of these data is: [http://www.collegeresults.org](http://www.collegeresults.org). Using these data, we will examine if (and how) academic "quality" of the student-body (measured by SAT score) is related to institutiional graduation rates.
+
+
+```{r message=FALSE}
+mn = read.csv(file = "~/Google Drive/Documents/epsy-8251/data/mnSchools.csv")
+head(mn)
+
+# Load libraries
+library(dplyr)
+library(ggplot2)
+library(sm)
+```
+
+\newpage
+
+## Using the Natural Logarithm as a Transformation of the Predictor
+
+Recall that the scatterplot of SAT scores and graduation rates suggested that the relationship between these variables was curvilinear.
+
+```{r echo=FALSE, out.width='3.5in'}
+ggplot(data = mn, aes(x = sat, y = gradRate)) +
+	geom_point() +
+	geom_smooth(se = FALSE) +
+	theme_bw() +
+  xlab("Median SAT score") +
+  ylab("Six-year graduation rate")
+```
+
+To model this nonlinearity, we fitted a model that included a polynomial effect (quadratic). Another method of modeling nonlinearity is to transform the predictor (or outcome) using a nonlinear transformation. One commonly used nonlinear transformation is the logarithm. The logarithm is an inverse function of an exponent. The logarithm of a number (32 in our example) is the exponent to which the base (2 in our example) must be raised to produce that number. In other words, 
+
+$$
+\log_2 (32) \longrightarrow 2^{x} = 32 \longrightarrow x=5
+$$ 
+
+Thus,
+
+$$
+\log_2 (32) = 5
+$$
+
+
+To compute a logarithm using R, we use the `log()` function. We also specify the argument `base=`, since logarithms are unique to a particular base. For example, to compute the mathematical expression $\log_2 (32)$, we use
+
+```{r}
+log(32, base = 2)
+```
+
+
+### Log-Transforming Variables
+
+For our purposes, we need to log-transform each value in a particular variable. Here, we will log-transform the SAT variable (using base-2).
+
+```{r}
+mn = mn %>% mutate(L2sat = log(sat, base = 2))
+head(mn)
+```
+
+How does this log-transformed variable compare to the original SAT predictor. We can examine the density plot of both the original and log-transformed variables to answer this.
+
+```{r echo=FALSE, fig.width=8, fig.height=4, out.width='6in'}
+par(mfrow = c(1, 2))
+sm.density(mn$sat, xlab = "SAT (raw values)")
+sm.density(mn$L2sat, xlab = "SAT (log-transformed values)")
+par(mfrow = c(1, 1))
+```
+
+
+- Comparing the shapes of the two variables, we see that the original variable was right-skewed. The log-transformed variable is also right-skewed, although it is LESS right-skewed than the original.
+- The scale is quite different between the two variables (one is, after all, log-transformed). This has greatly affected the variation. After log-transforming, the variation is much smaller.
+
+\newpage
+
+What happens when we use the log-transformed variable in a scatterplot with graduation rates?
+
+```{r echo=FALSE, fig.width=8, fig.height=4, out.width='5in'}
+p1 = ggplot(data = mn, aes(x = sat, y = gradRate)) +
+	geom_point() +
+  geom_smooth(se = FALSE) +
+	theme_bw() +
+  xlab("Raw SAT score") +
+  ylab("Six-year graduation rate")
+
+p2 = ggplot(data = mn, aes(x = L2sat, y = gradRate)) +
+	geom_point() +
+  geom_smooth(se = FALSE) +
+	theme_bw() +
+  xlab("Log-transformed SAT score") +
+  ylab("Six-year graduation rate")
+
+gridExtra::grid.arrange(p1, p2, nrow = 1)
+```
+
+
+The relationship between graduation rate and the log-transformed SAT scores is MORE linear than the relationship between graduation rates and the untransformed SAT scores. By transforming the variable using a nonlinear transformation (log) we have "linearized" the relationship with graduation rates. As such, we can fit a linear model to predict graduation rates using the Log-transformed SAT scores as a predictor.
+
+# Fitting the Regression Model
+
+To fit the model, we use the `lm()` function and input the log-transformed SAT scores as the predictor.
+
+```{r}
+lm.1 = lm(gradRate ~ 1 + L2sat, data = mn)
+```
+
+### Examine the Assumption of Linearity
+
+Before examining the coefficients, we can scrutinize the residuals to see whether the log-transformation helped us meet the assumption of linearity.
+
+```{r out.width='3.5in'}
+# Obtain residuals
+out = fortify(lm.1)
+
+# Check linearity assumptions
+ggplot(data = out, aes(x = .fitted, y = .stdresid)) +
+  geom_point() +
+  geom_hline(yintercept = 0) +
+  geom_smooth() +
+  theme_bw()
+```
+
+The assumption looks reasonably met as the horizontal line of $y=0$ is encompassed in the confidence envelope of the loess smoother.  
+
+### Interpret the Regression Results
+
+We can now look at the `summary()` output and interpret the output.
+
+```{r}
+summary(lm.1)
+```
+
+\newpage
+
+Examining the model-level output, we see that differences in $\log_2(\mathrm{SAT})$ explain 81.13\% of the variation in graduation rates. This is statistically significant, $F(1,~31)=133.3$, $p<.001$. Since differences in $\log_2(\mathrm{SAT})$ imply that there are differences in the raw SAT scores, we would typically just say that "differences in SAT scores explain 81.13\% of the variation in graduation rates." 
+
+Moving to the coefficient-level output, we can write the fitted equation as,
+
+$$
+\hat{\mathrm{Graduation~Rate}} = -1013.87 + 106.44\bigg[\log_2(\mathrm{SAT})\bigg]
+$$
+
+
+
+We can interpret the coefficients as we always do, recognizing that these interpretation are based on the log-transformed predictor.
+
+- The intercept value of $-1013.87$ is the predicted average graduation rate for all colleges/universities with a $\log_2(\mathrm{SAT})$ value of 0.
+- The slope value of 106.44 indicates that each one-unit difference in $\log_2(\mathrm{SAT})$ is associated with a 106.44-unit difference in graduation rate, on average.
+
+#### Better Interpretations: Back-transforming
+
+While these interpretations are technically correct, it is more helpful to your readers (and more conventional) to interpret any regression results in the metric of SAT scores rather than log-transformed SAT scores. This means we have to back-transform the interpretations. To back-transform a logarithm, we use its inverse function; exponentiation.
+
+We interpreted the intercept as, "the predicted average graduation rate for all colleges/universities with a $\log_2(\mathrm{SAT})$ value of 0". To interpret this using the SAT metric, we have to understand what $\log_2(\mathrm{SAT}) = 0$ is. 
+
+$$
+\log_2 (\mathrm{SAT}) = 0 \longrightarrow 2^{0} = \mathrm{SAT}
+$$ 
+
+In this computation, $\mathrm{SAT}=1$. Thus, rather than using the log-transformed interpretation, we can, instead, interpret the intercept as,
+
+- The predicted average graduation rate for all colleges/universities with a median SAT score of 1 is $-1013.87$.
+
+Since there are no colleges/universities in our data that have a SAT score of 1, this is extrapolation.
+
+What about the slope? Our interpretation was that "each one-unit difference in $\log_2(\mathrm{SAT})$ is associated with a 106.44-unit difference in graduation rate, on average." Working with the same ideas of back-transformation, we need to understand what a one-unit difference in $\log_2(\mathrm{SAT})$ means. Consider four values of $\log_2(\mathrm{SAT})$ that are each one-unit apart:
+
+$$
+\log_2(\mathrm{SAT}) = 1\\
+\log_2(\mathrm{SAT}) = 2\\
+\log_2(\mathrm{SAT}) = 3\\
+\log_2(\mathrm{SAT}) = 4
+$$
+
+If we back-transform each of these, then we can see how the four values of the raw SAT variable would differ.
+
+$$
+\mathrm{SAT} = 2^1 = 2\\
+\mathrm{SAT} = 2^2 = 4\\
+\mathrm{SAT} = 2^3 = 8\\
+\mathrm{SAT} = 2^4 = 16
+$$
+
+When $\log_2(\mathrm{SAT})$ is increased by one-unit, the raw SAT scores is doubled. We can use this in our interpretation of slope:
+
+- A doubling of median SAT score is associated with a 106.44-unit difference in graduation rate, on average.
+
+\newpage
+
+The technical language for doubling is a "two-fold difference". So we would conventionally interpret this as:
+
+- Each two-fold difference in median SAT score is associated with a 106.44-unit difference in graduation rate, on average.
+
+To understand this further, consider a specific school, say Augsburg. Their median SAT score is 1030, and their log-transformed SAT score is 10.00843. Using the fitted regression equation (which employs the log-transformed SAT),
+
+```{r}
+-1013.872 + 106.439 * 10.00843
+```
+
+Augsburg's predicted graduation rate would be 51.4. If we increase the L2sat score by 1 to 11.00843 (which is equivalent to a raw SAT score of 2060; double 1030), their predicted graduation rate is,
+
+```{r}
+-1013.872 + 106.439 * 11.00843
+```
+
+This is an increase of 106.439.
+
+# Alternative Method of Fitting the Model
+
+Rather that create the log-transformed SAT score in the data, we can use the `log()` function on SAT directly in the `lm()` computation.
+
+```{r}
+lm.1 = lm(gradRate ~ 1 + log(sat, base = 2), data = mn)
+summary(lm.1)
+```
+
+Using this method of fitting the model will be useful as we plot the fitted model.
+
+\newpage
+
+# Plotting the Fitted Model
+
+To aid interpretation of the effect of SAT on graduation rate, we can plot the fitted model. If we used the method of fitting in which we used `log()` directly in the `lm()` function, we only need to set up a sequance of SAT values, predict graduation rates using the fitted model, and finally connect these values using a line. 
+
+
+```{r out.width='3.5in'}
+# Set up data
+plotData = expand.grid(
+    sat = seq(from = 890, to = 1400, by = 10)
+    )
+
+# Predict
+plotData$yhat = predict(lm.1, newdata = plotData)
+
+# Examine data
+# head(plotData)
+
+# Plot
+ggplot(data = plotData, aes(x = sat, y = yhat)) +
+	geom_line() +
+	theme_bw() +
+  xlab("Median SAT score") +
+  ylab("Predicted graduation rate")
+```
+
+
+The plot shows the slight curvilinearity in the effect of SAT on graduation rates. 
+
+\newpage
+
+# Different Base Values in the Logarithm
+
+The base value we used in the `log()` function was base-2. Using a base value of 2 was an arbitrary choice. We can use any base value we want. For example, what happens if we use base-10.
+
+```{r}
+mn$L10sat = log(mn$sat, base = 10)
+head(mn)
+```
+
+Comparing the logarithms of SAT using base-10 to those using base-2 we see that the base-10 logarithms are smaller. This is because now we are using the base of 10 in our exponent (rather than 2). For example, for Augsburg,
+
+$$
+10^{3.012837} = 1030
+$$
+
+If we fit a model using the base-10 lagarithm,
+
+```{r}
+lm.2 = lm(gradRate ~ 1 + log(sat, base = 10), data = mn)
+summary(lm.2)
+```
+
+\newpage
+
+Examining the model-level output, we see that differences in $\log_{10}(\mathrm{SAT})$ explain 81.13\% of the variation in graduation rates. Or simply, that differences in SAT scores explain 81.13\% of the variation in graduation rates. This is statistically significant, $F(1,~31)=133.3$, $p<.001$. These model-level results are the same as when we used the base-2 logarithm. 
+
+The fitted equation is,
+
+$$
+\hat{\mathrm{Graduation~Rate}} = -1013.87 + 353.58\bigg[\log_{10}(\mathrm{SAT})\bigg]
+$$
+
+
+
+We can interpret the coefficients using the base-10 logarithm of SAT scores as:
+
+- The intercept value of $-1013.87$ is the predicted average graduation rate for all colleges/universities with a $\log_{10}(\mathrm{SAT})$ value of 0.
+- The slope value of 353.58 indicates that each one-unit difference in $\log_{10}(\mathrm{SAT})$ is associated with a 353.58-unit difference in graduation rate, on average.
+
+Better yet, we can back-transform the interpretations so that we are using SAT scores rather than $\log_{10}(\mathrm{SAT})$ scores.
+
+- The predicted average graduation rate for all colleges/universities with a median SAT score of 1 is $-1013.87$.
+- Each *ten-fold* difference in median SAT score is associated with a 353.58-unit difference in graduation rate, on average.
+
+To further think about the effect of SAT, if Augsburg improved its median SAT score ten-fold (i.e., going from a median SAT score of 1030 to a median SAT score of 10,300) we would predict its graduation rate to go up by 353.58.
+
+The model-level information is all the same. Furthermore, the intercepts (and SE and $p$-value) was the same across both models. The slope coefficients and SEs were different in the two models, but the $t$-value and $p$-value for the effect of SAT was identical for both base-2 and base-10. The only real difference in using base-10 vs. base-2 in the logarithm is in the interpretation of the SAT effect. 
+
+What if we look at the residual fit?
+
+```{r echo=FALSE, fig.width=8, fig.height=4, out.width='5in'}
+p1 = ggplot(data = out, aes(x = .fitted, y = .stdresid)) +
+  geom_point() +
+  geom_hline(yintercept = 0) +
+  geom_smooth() +
+  theme_bw() +
+  ggtitle("Log-2 SAT")
+
+out2 = fortify(lm.2)
+p2 = ggplot(data = out2, aes(x = .fitted, y = .stdresid)) +
+  geom_point() +
+  geom_hline(yintercept = 0) +
+  geom_smooth() +
+  theme_bw() +
+  ggtitle("Log-10 SAT")
+
+gridExtra::grid.arrange(p1, p2, nrow = 1)
+```
+
+\newpage
+
+The residuals fit EXACTLY the same. Why is this? Let's again use Augsburg as an example. Using the fitted model that employed the base-2 logarithm, we found that Augsburg's predicted graduation rate was,
+
+$$
+\begin{split}
+\hat{\mathrm{Graduation~Rate}} &= -1013.87 + 106.44\bigg[\log_2(1030)\bigg] \\
+&= -1013.87 + 106.44\bigg[10.00843\bigg] \\
+&= 51.42
+\end{split}
+$$
+
+Using the model that employed the base-10 lpogarithm, augsburg's predicted graduation rate would be
+
+$$
+\begin{split}
+\hat{\mathrm{Graduation~Rate}} &= -1013.87 + 353.58\bigg[\log_{10}(1030)\bigg] \\
+&= -1013.87 + 353.58\bigg[3.012837\bigg] \\
+&= 51.42
+\end{split}
+$$
+
+Augsburg's predicted graduation rate is exactly the same in the two models. This implies that Augsburg's residual would also be the same in the two models. This is true for every college. Because of this, increasing (or decreasing) the base used in the logarithm does not help improve the fit of the model. The fit is exactly the same no matter which base you choose. The only thing that changes when you choose a different base is the interpretation of the slope. You should choose the base to facilitate interpretation. For example, does it make more sense to talk about a *two-fold* difference in the predictor? A *five-fold* difference in the predictor? A *ten-fold* difference in the predictor?
+
+
+# Base-$e$ Logarithm: The Natural Logarithm
+
+In our example, neither of the bases we examined is satisfactory in terms of talking about the effect of SAT. Two-fold differences in SAT are very unlikely, to say anything of ten-fold differences. One base that is commonly used for log-transformations is base-$e$. $e$ is a mathematical constant (Euler's number) that is approximately equal to 2.71828. We can obtain this by using the `exp()` function in R. This function takes $e$ to some exponanent that is given as the argument. So to obtain the approximation of $e$ we use
+
+```{r}
+exp(1)
+```
+
+The logarithm (base-$e$) for a number, referred to as the *natural logarithm*, can be obtained using the `log()` function with the argument `base=exp(1)`. However, this base is so commonly used that it is the default value for the `base=` argument. So, if we use the `log()` function without defining the `base=` argument, it will automatically use base-$e$. For example, the natural logarithm of Augsburg's SAT score of 1030 can be computed as
+
+```{r}
+log(1030)
+```
+
+If we took $e^{6.937314}$ we would obtain 1030. The natural logarithm even has its own mathematical notation; $\ln$. For example, we would mathematically express the natural logarithm of 1030 as
+
+$$
+\ln (1030) = 6.937314.
+$$
+
+## Using the Natural Logarithm in a Regression Model
+
+Below we regress graduation rates on the log-transformed SAT scores, using the natural logarithm.
+
+```{r}
+lm.3 = lm(gradRate ~ 1 + log(sat), data = mn)
+summary(lm.3)
+```
+
+As with any base, using base-$e$ results in the same model-level information ($R^2=.811$, $F(1,~31)=133.3$, $p<.001$). The intercept has the same coefficient ($\hat\beta_0=-1013.9$), SE, $t$-value, and $p$-value as the intercept from the models using base-2 and base-10 log-transformations of SAT. (This is, again, because $2^0=10^0=e^0=1$.) And, although the coefficient and SE for the effect of SAT is again different (a one-unit change in the three different log-scales doess not correspond to the same amount of change in raw SAT for the three models), the $t$-value and level of statistical significance ($t(31)=11.55$, $p<.001$) for this effect, are the same as when we used base-2 and base-10. 
+
+So how can we interpret the model's coefficients? The intercept can be interpreted exactly the same as in the previous models in which we used base-2 or base-10; namely that the predicted average graduation rate for colleges/univeristies with a median SAT score of one is $-1013.9$. Interpreting the slope, we could say that an  $e$-fold difference in median SAT score is associated with a 153.6-unit difference in graduation rates, on average. This, although correct, is again, unsatisfactory. If a two-fold difference is unlikely, a 2.71-fold difference is also unlikely.
+
+### Interpretation Using Percentage Change
+
+Consider three schools, each having a SAT score that differs by 1\%; say these schools have median SAT scores of 1000, 1010, 1020.1. Using the fitted equation, we can compute the predicted graduation rate for each of these hypothetical schools:
+
+$$
+\hat{\mathrm{Graduation~Rate}} = -1013.9 + 153.6 \bigg[\ln (\mathrm{SAT})\bigg]
+$$
+
+\newpage
+
+The SAT scores and predicted graduation rates for these schools are given below:
+
+```{r echo=FALSE}
+new = data.frame(sat = c(1000, 1010, 1020.1))
+new$gradRate = predict(lm.3, newdata = new)
+print(new)
+```
+
+The difference between each subsequent predicted graduation rate is 1.52797.
+
+```{r}
+48.40581 - 46.87784
+49.93378 - 48.40581
+```
+
+In other words, for schools that have a median SAT score that differs by 1\%, their predicted graduation rate differs by 1.52797, on average.
+
+
+
+### Mathematical Explanation
+
+To understand how we can directly compute this of this difference, consider the predicted values for two $x$-values that differ by one-percent, if we use symbolic notation:
+
+$$
+\begin{split}
+\hat{y}_1 &= \hat\beta_0 + \hat\beta_1\left[\ln(x)\right] \\
+\hat{y}_2 &= \hat\beta_0 + \hat\beta_1\left[\ln(1.01x)\right]
+\end{split}
+$$
+
+The difference in their predicted values is:
+
+$$
+\begin{split}
+\hat{y}_2 - \hat{y}_1 &= \hat\beta_0 + \hat\beta_1\left[\ln(1.01x)\right] - \left(\hat\beta_0 + \hat\beta_1\left[\ln(x)\right]\right) \\
+&=\hat\beta_0 + \hat\beta_1\left[\ln(1.01x)\right] - \hat\beta_0 - \hat\beta_1\left[\ln(x)\right] \\
+&=\hat\beta_1\left[\ln(1.01x)\right] - \hat\beta_1\left[\ln(x)\right] \\
+&=\hat\beta_1\left[\ln(1.01x) - \ln(x)\right]\\
+&=\hat\beta_1\left[\ln(\frac{1.01x}{1x})\right]
+\end{split}
+$$
+
+If we substitute in any value for $x$, we can now directly compute this constant difference. Note that a convenient value for $x$ is 1. Then this reduces to:
+
+$$
+\hat\beta_1\left[\ln(1.01)\right]
+$$
+
+So now, we can interpret this as: a one-percent difference in $x$ is associated with a $\hat\beta_1\left[\ln(1.01)\right]$-unit difference in $Y$, on average. 
+
+
+In our model, we can compute this difference using the fitted coefficient $\hat\beta_1=153.6$ as
+
+$$
+153.6\left[\ln(1.01)\right] = 1.528371
+$$
+
+\newpage
+
+The same computation using R is
+
+```{r}
+153.6 * log(1.01)
+```
+
+This gives you the constant difference exactly. So you can interpret the effect of SAT as, each 1\% difference in SAT score is associated with a difference in graduation rates of 1.53, on average.
+
+### Approximate Interpretaton
+
+We can get an approximate estimate for this value by using the mathematical shortcut of 
+
+$$
+\frac{\hat\beta_1}{100}
+$$ 
+
+Using our fitted results, we could approximate the effect as,
+
+$$
+\frac{153.6}{100} = 1.536
+$$
+
+
+We could then interpret the effect of SAT by saying a 1\% difference in median SAT score is associated with a 1.53-unit difference in predicted graduation rate, on average. 
+
+# Including Covariates
+
+We can also include covariates in the model. Below we examine the nonlinear effect of SAT on graduation controlling for differences in sector. 
+
+```{r}
+lm.4 = lm(gradRate ~ 1 + public + log(sat), data = mn)
+summary(lm.4)
+```
+
+The model explains 86.5\% of the variation in graduation rates, $F(2,~30)=96.58$, $p<.001$. Interpreting each of the coefficients using the raw SAT scores:
+
+- The intercept value of $-1013.87$ is the predicted average graduation rate for all public colleges/universities with a median SAT score of 1 (extrapolation).
+- There is a statistically significant effect of sector after controlling for differences in median SAT score ($p=.002$). Public schools have a predicted graduation rate that is 8.5-units lower, on average, than private schools controlling for differences in median SAT scores.
+- There is a statistically significant effect of SAT after controlling for differences in sector ($p<.001$). A 1\% difference in median SAT score is associated with a 1.46-unit difference in predicted graduation rate, on average, after controlling for differences in sector.
+
+To further help interpret these effects, we can plot the fitted model.
+
+```{r fig.width=8, fig.height=6, out.width='4.5in'}
+# Set up data
+plotData = expand.grid(
+  sat = seq(from = 890, to = 1400, by = 10),
+  public = c(0, 1)
+)
+
+# Predict
+plotData$yhat = predict(lm.4, newdata = plotData)
+
+# Examine data
+# head(plotData)
+
+# Plot
+ggplot(data = plotData, aes(x = sat, y = yhat, color = factor(public))) +
+  geom_line() +
+  theme_bw() +
+  xlab("Median SAT score") +
+  ylab("Predicted graduation rate") +
+  scale_color_brewer(name = "Sector", palette = "Set1", labels = c("Private", "Public"))
+```
+
+\newpage
+
+The plot shows the nonlinear, positive effect of SAT on graduation rate for both public and private schools. For schools with lower median SAT scores, there is a larger effect on graduation rates than for schools with higher median SAT scores (for both private and public schools). The plot also shows the controlled effect of sector. For schools with the same median SAT score, private schools have a higher predicted graduation rate than public schools, on average.
+
+
+# Polynomial Effects vs. Log-Transformations
+
+The inclusion of polynomial effects and the use of a log-transformation was to model the nonlinearity observed in the relationship between SAT scores and graduation rates. Both methods were successful in this endeavor. While either method could be used in practice to model nonlinearity, there are some considerations when making the choice of which may be more appropriate for a given modeling situation. 
+
+The first consideration is one of theory. The plot below shows the mathematical function for a log-transformed $X$-value (solid, black line) and for a quadratic polynomial of $X$ (dashed, red line). 
+
+```{r echo=FALSE, out.width='3in'}
+new = data.frame(x = seq(from = 1, to = 15, by = 0.01))
+new$y = log(new$x)
+new$quad =  -0.21717 + 0.48782*new$x  - 0.02453*new$x^2
+plot(y ~ x, data = new, type = "l", lwd = 1.5)
+lines(quad ~ x, data = new, col = "red", lty = "dashed", lwd = 1.5)
+```
+
+Both functions are nonlinear, however then polynomial function changes direction. For low values of $X$, the function has a large positive effect. This effect diminishes as $X$ gets bigger, and around $X=9$ the effect is zero. For larger values of $X$, the effect is actually negative. For the logarithmic function, the effect is always positive, but it diminishes as $X$ gets larger . Theoretically, these are very different ideas, and if substantive literature suggests one or the other, you should probably acknowledge that in the underlying statistical model that is fitted. 
+
+Empirically, the two functions are very similar especially within certain ranges of $X$. For example, although the predictions from these models would be quite different for really high values of $X$, if we only had data from the range of 2 to 8 ($2\leq X \leq 8$) both functions would produce similar residuals. It might then be prudent to think about Occam's Razor---if two competing models produce similar predictions, adopt the simpler model. Between these two functions, the log-transformed model is simpler; it has one fewer predictor. The mathematical models make this clear:
+
+$$
+\begin{split}
+\mathbf{Polynomial:~}Y_i &= \beta_0 + \beta_1(X_i) + \beta_2(X_i^2) +\epsilon_i \\
+\mathbf{Log\mbox{-}Transform:~}Y_i &= \beta_0 + \beta_1\bigg[\ln(X_i)\bigg] + \epsilon_i 
+\end{split}
+$$
+
+The quadratic polynomial model has two effects: a linear effect of $X$ and a quadratic effect of $X$ (remember it is an interaction model), while the model using the log-transformed predictor only has a single effect. If there is no theory to guide your model's functional form, and the residuals from the polynomial and log-transformed models seem to fit equally well, then the log-transformed model saves you a degree of freedom, and probably should be adopted.
+
+
+
+<!-- (in mathematical parlance, this is often referred to as a *learning curve*) -->
+
+
+
+
+
+
+<!-- (pattern followed a learning curve). To remedy this, we fitted a model that used the logarithm of $X$ to predict $Y$. Here we will use the natural log to transform SAT scores. -->
+
+
+<!-- ```{r} -->
+<!-- # log-transform SAT scores using the natural logarithm -->
+<!-- mn$Lsat = log(mn$sat) -->
+
+<!-- # Fit model -->
+<!-- lm.3 = lm(gradRate ~ Lsat, data = mn) -->
+<!-- summary(lm.3) -->
+<!-- ``` -->
+
+<!-- The model-level summary is exactly the same as the other models we fitted: Differences in the natural log of SAT scores, which is the same thing as differences in SAT scores, explains 81.13\% of the variation in graduation rates. This is statistically reliable, $F(1,31)=133.3$, $p<0.001$.  -->
+
+<!-- The fitted equation is -->
+
+<!-- $$ -->
+<!-- \hat{\mathrm{gradRate}} = -1013.872 + 153.6\left[\ln(\mathrm{SAT})\right] -->
+<!-- $$ -->
+
+<!-- To interpret the coefficients: -->
+
+<!-- - $\hat{\beta_0} = -1013.872$. This is the average estimated graduation rate when $\ln(\mathrm{SAT})$ is equal to 0. Equivalently, when $\ln(\mathrm{SAT}) = 0$, SAT = $e^0=1$. The average estimated graduation rate for all school that have an SAT score of 1 is $-1013.872$. -->
+<!-- - $\hat{\beta_1} = 153.6$. A one-unit difference in $\ln(\mathrm{SAT})$ is associated with a 153.6\% difference in graduation rate, on average. Or, a one-unit difference in $\ln(\mathrm{SAT})$ is equivalent to a 2.71-fold difference in SAT. -->
+
+
+<!-- ### Interpretation Using Percentage Change -->
+
+<!-- Remember that when we use the natural logarithm we can use the interpretation of "percentage change". Here the predictor is the variable that has been log-transformed. So rather than talk about a "one-unit" difference in the predictor we talk about a *one-percent* difference in the predictor. -->
+
+<!-- Consider three schools, each having a SAT score that differs by one-percent; 1000, 1010, 1020.1.  -->
+
+<!-- ```{r} -->
+<!-- new = data.frame(Lsat = log(c(1000, 1010, 1020.1))) -->
+<!-- predict(lm.3, newdata = new) -->
+<!-- ``` -->
+
+<!-- The predicted graduation rates differ by a constant rate of 1.52797. -->
+
+<!-- ```{r} -->
+<!-- 48.40581 - 46.87784 -->
+<!-- 49.93378 - 48.40581 -->
+<!-- ``` -->
+
+<!-- ### Mathematical Explanation -->
+
+<!-- To understand how we can directly compute this, consider the predicted values for two $x$-values that differ by one-percent, if we use symbolic notation: -->
+
+<!-- $$ -->
+<!-- \begin{split} -->
+<!-- \hat{y}_1 &= \hat\beta_0 + \hat\beta_1\left[\ln(x)\right] \\ -->
+<!-- \hat{y}_2 &= \hat\beta_0 + \hat\beta_1\left[\ln(1.01x)\right] -->
+<!-- \end{split} -->
+<!-- $$ -->
+
+<!-- The difference in their predicted values is: -->
+
+<!-- $$ -->
+<!-- \begin{split} -->
+<!-- \hat{y}_2 - \hat{y}_1 &= \hat\beta_0 + \hat\beta_1\left[\ln(1.01x)\right] - \left(\hat\beta_0 + \hat\beta_1\left[\ln(x)\right]\right) \\ -->
+<!-- &=\hat\beta_0 + \hat\beta_1\left[\ln(1.01x)\right] - \hat\beta_0 - \hat\beta_1\left[\ln(x)\right] \\ -->
+<!-- &=\hat\beta_1\left[\ln(1.01x)\right] - \hat\beta_1\left[\ln(x)\right] \\ -->
+<!-- &=\hat\beta_1\left[\ln(1.01x) - \ln(x)\right]\\ -->
+<!-- &=\hat\beta_1\left[\ln(\frac{1.01x}{1x})\right] -->
+<!-- \end{split} -->
+<!-- $$ -->
+
+<!-- If we substitute in any value for $x$, we can now directly compute this constant difference. Note that a convenient value for $x$ is 1. Then this reduces to: -->
+
+<!-- $$ -->
+<!-- \hat\beta_1\left[\ln(1.01)\right] -->
+<!-- $$ -->
+
+<!-- So now, we can interpret this as: a one-percent difference in $x$ is associated with a $\hat\beta_1\left[\ln(1.01)\right]$-unit difference in $Y$, on average. In our model -->
+
+<!-- $$ -->
+<!-- 153.6\left[\ln(1.01)\right] -->
+<!-- $$ -->
+
+<!-- ```{r} -->
+<!-- 153.6 * log(1.01) -->
+<!-- ``` -->
+
+<!-- This gives you the constant difference exactly. So you can interpret the effect of SAT as, each one-percent difference in SAT score is associated with a difference in graduation rates of 1.528371\%, on average. (Note: Here the units for $Y$ were in percent (graduation rate), so the interpretation is percent. You should use whatever the units of $Y$ are.) -->
+
+<!-- ### Approximate Interpretaton -->
+
+<!-- We can get an approximate estimate for this value by using the mathematical shortcut of $\frac{\hat\beta_1}{100}$. Then, in general a one-percent difference in $x$ is associated with a $\frac{\hat\beta_1}{100}$-unit difference in $Y$, on average. For our example, we would just interpret it as each one-percent difference in SAT score is associated with a difference in graduation rates of 1.53\%, on average. -->
+
+
+<!-- ## Additional Practice -->
+
+<!-- Let us turn back to the *earnings.csv* data to re-examine this. Note that the relationship between education and earnings does not warrant fitting this particular model, but we do it for pedagogical purposes and practice with interpretation. -->
+
+<!-- ```{r message=FALSE} -->
+<!-- earnings = read.csv(file = "~/Documents/EPsy-8262/data/earnings.csv") -->
+
+<!-- # Log-transform the predictor -->
+<!-- earnings$Leducation = log(earnings$education) -->
+
+<!-- head(earnings) -->
+
+<!-- # Fit the model -->
+<!-- summary(lm(earn ~ Leducation, data = earnings)) -->
+<!-- ``` -->
+
+<!-- To interpret the coefficients: -->
+
+<!-- - $\hat{\beta_0} = -57440$. This is the average estimated graduation rate when $\ln(\mathrm{Education})$ is equal to 0, or equivalently, when a person has one-year of formal education. The average earnings for all people with one-year of formal education is $-57,440$ dollars. -->
+<!-- - $\hat{\beta_1} = 31177$. A one-unit difference in $\ln(\mathrm{Education})$ is associated with a 31,177-dollar difference in earnings, on average. OR, a one-percent difference in education is is associated with a \$310 ($31177\left[\ln(1.01)\right] = 310.22$) difference in earnings, on average. -->
+
+<!-- Again, we could have approximated this by computing $\frac{\hat\beta_1}{100} = \frac{31177}{100} = 311.77$ -->
+
+
+<!-- ## Original Earning and Education Relationship Revisited -->
+
+<!-- In the original relationship, we observed a pattern of exponential growth between education and earnings. This led us to log-transform the outcome, earnings, using the natural logarithm. -->
+
+<!-- ```{r message=FALSE} -->
+<!-- # Log-transform the outcome -->
+<!-- earnings$Learn = log(earnings$earn) -->
+<!-- ``` -->
+
+<!-- Recall that we were concerned that the residuals still showed signs of non-linearity, even after we log-transformed the outcome. Here is the scatterplot of the log-earnings versus education values. -->
+
+<!-- ```{r tidy=FALSE, out.width='4.5in'} -->
+<!-- ggplot(data = earnings, aes(x = education, y = Learn)) + -->
+<!--   geom_point() + -->
+<!--   geom_smooth(se = FALSE) + -->
+<!--   theme_bw() -->
+<!-- ``` -->
+
+<!-- The relationship shows (perhaps) some non-linearity. The plot has aspects of the same relationship we observed in the MN schools data. To fix that we took the log of the predictor. Here we have already taken the log of the outcome, so our model will now be: -->
+
+<!-- $$ -->
+<!-- \ln(Y) = \beta_0 + \beta_1(\ln\left[X\right]) + \epsilon -->
+<!-- $$ -->
+
+<!-- To fit this we take the log of the outcome and the predictor and fit a model using those two transformed variables. We already have the log transformed outcome. -->
+
+<!-- ```{r} -->
+<!-- # Fit log-log model -->
+<!-- lm.4 = lm(Learn ~ Leducation, data = earnings) -->
+<!-- summary(lm.4) -->
+<!-- ``` -->
+
+<!-- The fitted equation is: -->
+
+<!-- $$ -->
+<!-- \ln\hat{\mathrm{Earnings}} = 5.8726 + 1.4861\left[\ln(\mathrm{Education})\right] -->
+<!-- $$ -->
+
+<!-- To interpret the coefficients: -->
+
+<!-- - $\hat{\beta_0} = 5.8726$. This is the average estimated log-earnings when log-education is equal to 0. Or, equivalently, people with one year of formal education have an average earnings of \$355 ($e^5.8726=355.17$). -->
+<!-- - $\hat{\beta_1} = 1.4861$. A one-unit difference in log-education is associated with a 1.4861-unit difference in log-earnings, on average. Or, since both $X$ and $Y$ used the natural log, we interpret everything as percents. A one-percent difference in education is associated with a 1.48\% ($1.4861 \times \ln(1.01) = 0.01478719$) difference in earnings. -->
+
+<!-- Again, we could have approximated this by computing $\frac{\hat\beta_1}{100} = \frac{1.4861}{100} = 0.0149$, which is interpreted as a percent; 1.49\%. -->
+
+<!-- ## Check the Interpretation -->
+
+<!-- Because converting to percentages may be confusing, it is reasonable to actually compute the ratio of earnings for education levels that differ by one-percent. For example, below we compute the earnings for someone with 100 years of education and someone with 101 years of education. -->
+
+<!-- ```{r} -->
+<!-- # 100 years of education -->
+<!-- exp(5.8726 + 1.4861 * log(100)) -->
+
+<!-- # 101 years of education -->
+<!-- exp(5.8726 + 1.4861 * log(101)) -->
+<!-- ``` -->
+
+<!-- The ratio between these two earnings is, -->
+
+<!-- $$ -->
+<!-- \frac{338111.4}{333148.4} = 1.014897 -->
+<!-- $$ -->
+
+<!-- A one-percent difference in education is associated with a 1.49\% increase in earnings, on average. This increase is what we get when we compute $\hat\beta_1 \times \ln(1.01)$. -->
+
+<!-- ```{r} -->
+<!-- 1.4861 * log(1.01) -->
+<!-- ``` -->
+
+
+<!-- ## Assumption Checking -->
+
+<!-- Checking the new residuals, -->
+
+<!-- ```{r tidy=FALSE, out.width='4.5in'} -->
+<!-- out = fortify(lm.4) -->
+
+<!-- ggplot(data = out, aes(x = .fitted, y = .stdresid)) + -->
+<!--   geom_point() + -->
+<!--   geom_hline(yintercept = 0) + -->
+<!--   geom_smooth(se = FALSE) + -->
+<!--   theme_bw() -->
+<!-- ``` -->
+
+<!-- The linearity assumption seems reasonable, but there is still evidence of heterogeneity. What to do? Use a different variance stabilizing technique, or use a different estimation method (e.g., weighted least squares). For now, we will ignore it. How would we plot the results from the model? -->
+
+
+<!-- ## Plotting the Model Results -->
+
+
+<!-- ```{r tidy=FALSE, out.width='4.5in'} -->
+<!-- # Set up data -->
+<!-- plotData = expand.grid( -->
+<!--     Leducation = seq(from = 1.0, to = 2.9, by = 0.1) -->
+<!--     ) -->
+
+<!-- # Predict -->
+<!-- plotData$yhat = predict(lm.4, newdata = plotData) -->
+
+<!-- # Back-transform any log terms -->
+<!-- plotData$education = exp(plotData$Leducation) -->
+<!-- plotData$earn = exp(plotData$yhat) -->
+
+<!-- # Examine data -->
+<!-- head(plotData) -->
+
+<!-- # Plot -->
+<!-- ggplot(data = plotData, aes(x = education, y = earn)) + -->
+<!-- 	geom_line() + -->
+<!-- 	theme_bw() + -->
+<!--   xlab("Education") + -->
+<!--   ylab("Predicted Earnings") -->
+<!-- ``` -->
+
+<!-- ## ANCOVA Model -->
+
+<!-- ```{r} -->
+<!-- lm.6 = lm(Learn ~ female + Leducation, data = earnings) -->
+<!-- summary(lm.6) -->
+<!-- ``` -->
+
+<!-- - $\hat{\beta_0} = 6.26451$. This is the average estimated log-earnings for males with education of 1 year. Back-transforming this, we find the average earnings for males is $e^{6.26451}$ or \$525.6. -->
+<!-- - $\hat{\beta_1} = -0.52015$. The average difference in log-earnings between males and females is $-0.52015$, controlling for differences in education. Controlling for differences in education, females earn, on average, $e^{-0.52015} = 59.4\%$ of what males earn. -->
+<!-- - $\hat{\beta_2} = 1.45048$. A one-unit difference in log-education is associated with a 1.45048-unit difference in log-earnings, on average, controlling for sex differences. OR, a one-percent difference in education is associated with a 1.44\% ($1.45048 \times \ln(1.01)=0.0144$) difference in earnings, controlling for differences in sex. -->
+
+<!-- ## Plot of the Model Results -->
+
+<!-- ```{r tidy=FALSE, out.width='4.5in'} -->
+<!-- # Set up data -->
+<!-- plotData = expand.grid( -->
+<!--     Leducation = seq(from = 1.0, to = 2.9, by = 0.1), -->
+<!--     female = c(0, 1) -->
+<!--     ) -->
+
+<!-- # Predict -->
+<!-- plotData$yhat = predict(lm.6, newdata = plotData) -->
+
+<!-- # Back-transform any log terms -->
+<!-- plotData$education = exp(plotData$Leducation) -->
+<!-- plotData$earn = exp(plotData$yhat) -->
+
+<!-- # Turn female into a factor -->
+<!-- plotData$female = factor(plotData$female, levels = c(0, 1), labels = c("Male", "Female")) -->
+
+<!-- # Examine data -->
+<!-- head(plotData) -->
+
+<!-- # Plot -->
+<!-- ggplot(data = plotData, aes(x = education, y = earn, group = female, color = female)) + -->
+<!-- 	geom_line() + -->
+<!-- 	theme_bw() + -->
+<!--   xlab("Education") + -->
+<!--   ylab("Earnings") + -->
+<!--   scale_color_brewer(name = "", palette = "Set1") -->
+<!-- ``` -->
+
+<!-- The plot helps us see (1) the exponential relationship between education and earning for both males and females, and (2) the growing discrepancy between male and female earnings at higher levels of education. Females earn roughly 59\% of what males do, but in raw numbers 59\% of a small value (e.g., a male earning for a low education value) is less than for a large value. Even though we fitted a main-effects model, the lines after we back-transform are not parallel. How non-parallel the lines are depends on the size of the coefficeint associated with `female` (in this example). This is why, especially with transformed data, it is essential to plot the model to make sure you are understanding the interpretations from your coefficients. -->
+
+
+<!-- ## Interaction Model -->
+
+<!-- ```{r} -->
+<!-- lm.7 = lm(Learn ~ female + Leducation + female:Leducation, data = earnings) -->
+<!-- summary(lm.7) -->
+<!-- ``` -->
+
+<!-- $$ -->
+<!-- \ln(\hat{\mathrm{Earnings}}) = 6.9162 - 1.6563(\mathrm{Female}) + 1.1990\left[\ln(\mathrm{Education})\right] + 0.4392(\mathrm{Female})\left[\ln(\mathrm{Education})\right] -->
+<!-- $$ -->
+
+
+<!-- The interaction term is marginally significant. This suggests that the effect of education on earnings depends on sex, and vice-versa, the effect of sex on earnings depends on educational level. Since the interaction involves a categorical predictor, we can try to further interpret the coefficients is we want. To do this, remember that we can substitute in 0 and 1 for `female` and obtain a separate fitted equation for males and females. -->
+
+<!-- ### Males (`female` = 0) -->
+
+<!-- $$ -->
+<!-- \begin{split} -->
+<!-- \ln(\hat{\mathrm{Earnings}}) &= 6.9162 - 1.6563(0) + 1.1990\left[\ln(\mathrm{Education})\right] + 0.4392(0)\left[\ln(\mathrm{Education})\right] \\ -->
+<!-- \ln(\hat{\mathrm{Earnings}}) &= 6.9162 + 1.1990\left[\ln(\mathrm{Education})\right] -->
+<!-- \end{split} -->
+<!-- $$ -->
+
+<!-- These are the coefficients for the intercept ($\hat\beta_0$) and the log-transformed education predictor ($\hat\beta_2$) from the initial fitted model. -->
+
+<!-- - $\hat{\beta_0} = 6.9162$. This is the average estimated log-earnings for males with education of 1 year. Back-transforming this, we find the average earnings for males with one year of formal education is $e^{6.9162}$ or \$1008.48. -->
+<!-- - $\hat{\beta_2} = 1.1990$. For males, a one-unit difference in log-education is associated with a 1.1990-unit difference in log-earnings, on average. OR, for males, a one-percent difference in education is associated with a 1.19\% ($1.1990 \times \ln(1.01)=0.0119$) difference in earnings. -->
+
+
+<!-- ### Females (`female` = 1) -->
+
+<!-- $$ -->
+<!-- \begin{split} -->
+<!-- \ln(\hat{\mathrm{Earnings}}) &= 6.9162 - 1.6563(1) + 1.1990\left[\ln(\mathrm{Education})\right] + 0.4392(1)\left[\ln(\mathrm{Education})\right] \\ -->
+<!-- \ln(\hat{\mathrm{Earnings}}) &= 5.2599 + 1.6382\left[\ln(\mathrm{Education})\right] -->
+<!-- \end{split} -->
+<!-- $$ -->
+
+<!-- The coefficients for sex ($\hat\beta_1$) and the interaction term ($\hat\beta_3$) from the initial fitted model are the differences in the intercept and slope, respectively, between females and males (the reference group). To understand how we interpret them, let's first interpret the intercept and slope for females. -->
+
+<!-- - $\mathrm{Intercept} = 5.2599$. This is the average estimated log-earnings for females with education of 1 year. Back-transforming this, we find the average earnings for females with one year of formal education is $e^{5.2599}$ or \$192.46. -->
+<!-- - $\mathrm{Slope} = 1.6382$. For females, a one-unit difference in log-education is associated with a 1.6382-unit difference in log-earnings, on average. OR, for females, a one-percent difference in education is associated with a 1.63\% ($1.6382 \times \ln(1.01)=0.0119$) difference, on average, in earnings. -->
+
+
+<!-- ### Sidenote -->
+
+<!-- Notice that when we compute $\hat\beta_1 \times \ln(1.01)$ the value we get after we interpret it as a percentage is essentially the slope. Thus when both the outcome and the predictor have been transformed using the natural logarithm, we can interpret a slope as: each one-percent difference in $X$ is associated with a $\hat\beta_1$\% difference in $Y$, on average (Note we do not move the decimal point here.) -->
+
+
+<!-- ### Back to the Interpretations from the Interaction Model -->
+
+<!-- We are going to combine the fact that the coefficients for sex ($\hat\beta_1$) and the interaction term ($\hat\beta_3$) from the initial fitted model are the differences in the intercept and slope, respectively, between females and males (the reference group), and the fact that we can directly interpret the $\hat\beta_1$ as a percentage difference in $Y$ since both the outcome and predictor for education have been transformed using the natural logarithm -->
+
+<!-- ```{r echo=FALSE} -->
+<!-- summary(lm.7)$coefficients -->
+<!-- ``` -->
+
+<!-- - $\hat{\beta_0} = 6.9162291$. This is the average estimated log-earnings for males with education of 1 year. Back-transforming this, we find the average earnings for males with one year of formal education is $e^{6.9162291}$ or \$1008.51. -->
+<!-- - $\hat{\beta_1} = -1.6563391$. The average difference in log-earnings between males and females with one year of formal education is $-1.6563391$. Females earn, on average, $e^{-1.6563391} = 19\%$ of what males earn when they both have one year of formal education. -->
+<!-- - $\hat{\beta_2} = 1.1989888$. For males, a one-unit difference in log-education is associated with a 1.1989888-unit difference in log-earnings, on average. OR, for males, a one-percent difference in education is associated with a 1.19\% difference in earnings. -->
+<!-- - $\hat{\beta_3} = 0.4392399$. For females, each one-unit difference in log-education is associated with a 0.4392399-unit higher difference in log-earnings than males, on average. OR, for females, a one-percent difference in education is associated with a 0.44\% higher difference in earnings than males. -->
+
+
+<!-- Again, just to help our understanding, we compute earnings for males and females so we can compare them. -->
+
+<!-- ```{r} -->
+<!-- # Ratio in earnings between females and males when Leducation = 0 -->
+<!-- exp(5.2599) / exp(6.9162) -->
+
+<!-- # One-percent difference in education for males -->
+<!-- exp(6.9162291 + 1.1989888*log(101)) / exp(6.9162291 + 1.1989888*log(100)) -->
+
+<!-- # One-percent difference in education for females -->
+<!-- exp(6.9162291 -1.6563391 + 1.1989888*log(101) + 0.4392399*log(101)) / exp(6.9162291 -1.6563391 + 1.1989888*log(100) + 0.4392399*log(100)) -->
+
+<!-- # Difference in percentage change between females and males -->
+<!-- 1.016435 - 1.012002 -->
+<!-- ``` -->
+
+<!-- ## Plot the Model Results -->
+
+<!-- ```{r tidy=FALSE, out.width='4.5in'} -->
+<!-- # Set up data -->
+<!-- plotData = expand.grid( -->
+<!--     Leducation = seq(from = 1.0, to = 2.9, by = 0.1), -->
+<!--     female = c(0, 1) -->
+<!--     ) -->
+
+<!-- # Predict -->
+<!-- plotData$yhat = predict(lm.7, newdata = plotData) -->
+
+<!-- # Back-transform any log terms -->
+<!-- plotData$education = exp(plotData$Leducation) -->
+<!-- plotData$earn = exp(plotData$yhat) -->
+
+<!-- # Turn female into a factor -->
+<!-- plotData$female = factor(plotData$female, levels = c(0, 1), labels = c("Male", "Female")) -->
+
+<!-- # Examine data -->
+<!-- head(plotData) -->
+
+<!-- # Plot -->
+<!-- ggplot(data = plotData, aes(x = education, y = earn, group = female, color = female)) + -->
+<!-- 	geom_line() + -->
+<!-- 	theme_bw() + -->
+<!--   xlab("Education") + -->
+<!--   ylab("Earnings") + -->
+<!--   scale_color_brewer(name = "", palette = "Set1") -->
+<!-- ``` -->
+
+<!-- The plot helps us understand that an interaction between sex and education allows the growth rate to be different between males and females. Males have almost linear type growth in earnings across education. For females, there is more exponential growth (higher slope).  -->
+
+
+
