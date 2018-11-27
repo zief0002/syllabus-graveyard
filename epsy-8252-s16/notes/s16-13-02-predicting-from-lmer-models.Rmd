@@ -1,0 +1,194 @@
+---
+title: "Funky Predictions from lmer()"
+author: "Andrew Zieffler"
+date: "April 19, 2016"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Read in Data and Load Libraries
+
+```{r warning=FALSE, message=FALSE}
+library(dplyr)
+library(ggplot2)
+library(lme4)
+library(tidyr)
+
+# Read in the data
+nhl = read.csv(file = "/Users/andrewz/Documents/EPsy-8252/data/NHL-Wide.csv")
+
+# Select variables
+nhl2 = nhl %>% 
+  select(team, X2002, X2003, X2006, X2007, X2008, X2010, X2011, X2013, X2014, lat)
+
+# Create long data from wide data (need tidyr package loaded)
+nhlLong = nhl2 %>% gather(
+  key = year, # Name of the variable that delineates the time points
+  value = fci, # Name of the outcome
+  c(X2002, X2003, X2006, X2007, X2008, X2010, X2011, X2013, X2014)
+  )
+
+# Remove the X from the years
+nhlLong$year = sub("X", "", nhlLong$year)
+
+# Coerce into a numeric value
+nhlLong$year = as.numeric(nhlLong$year)
+
+# Cebter the year predictor
+nhlLong$c.year = nhlLong$year - mean(nhlLong$year)
+
+# Examine the new data
+str(nhlLong)
+head(nhlLong)
+```
+
+# Fit lmer() Model
+
+```{r}
+model.f = lmer(fci ~ 1 + c.year + I(c.year^2) + lat + lat:c.year + lat:I(c.year^2) + (1 + c.year + I(c.year^2) | team), data = nhlLong)
+```
+
+## Set Up Plotting Data
+
+```{r fig.width=8, fig.height=6, out.width='6in', out.height='4.5in'}
+# Create data set 
+wild = data.frame(
+	c.year = seq(from = -6.2, to = 5.8, by = 0.1),
+	lat = 44.94509,
+	team = "Minnesota Wild"
+	)
+
+stars = data.frame(
+	c.year = seq(from = -6.2, to = 5.8, by = 0.1),
+	lat = 32.79069,
+	team = "Dallas Stars"
+	)
+
+avalanche = data.frame(
+	c.year = seq(from = -6.2, to = 5.8, by = 0.1),
+	lat = 39.74857,
+	team = "Colorado Avalanche"
+	)
+
+plotData = rbind(avalanche, stars, wild)
+
+# Compute y-hat values 
+plotData$yhat = predict(model.f, newdata = plotData)
+
+# Examine first two predicted values
+plotData %>% filter(c.year < -6.1)
+```
+
+# Model Predictions by Computation
+
+Here we compute each team's predicted FCI without using `predict()`. The `coef()` function produces the model coefficients for each team.
+
+```{r}
+mw = coef(model.f)$team %>% filter(row.names(.) == "Minnesota Wild")
+ds = coef(model.f)$team %>% filter(row.names(.) == "Dallas Stars")
+ca = coef(model.f)$team %>% filter(row.names(.) == "Colorado Avalanche")
+
+# Bind them together into a matrix
+all = matrix(c(mw, ds, ca), byrow = TRUE, nrow = 3)
+all
+```
+
+For the Wild, the equation is:
+
+$$
+\mathrm{FCI} = 74.01936 - 12.960537(\mathrm{c.year}) + 2.9513462(\mathrm{c.year}^2) + 5.657055(\mathrm{lat}) + 0.5417028(\mathrm{lat})(\mathrm{c.year}) - 0.07254555(\mathrm{lat})(\mathrm{c.year}^2)
+$$
+
+Substituting in the Wild's latitude of 44.94509, we can compute the predicted FCI for `c.year` of $-6.2$ and $-6.1$.
+
+```{r tidy=FALSE}
+c.year = c(-6.2, -6.1)
+74.01936 - 12.960537*c.year + 2.9513462*(c.year^2) + 5.657055*44.94509 + 
+  0.5417028*44.94509*c.year  - 0.07254555*44.94509*(c.year^2)
+```
+
+Similarly, we can compute the predicted FCI for the Avalanche and the Stars.
+
+```{r tidy=FALSE}
+# Avalanche
+14.70640 - 17.306516*c.year + 3.5889653*(c.year^2) + 5.657055*39.74857 + 
+  0.5417028*39.74857*c.year - 0.07254555*39.74857*(c.year^2)
+
+# Stars
+44.63861 - 15.482935*c.year + 3.0226454*(c.year^2) + 5.657055*32.79069 + 
+  0.5417028*32.79069*c.year - 0.07254555*32.79069*(c.year^2)
+```
+
+These correspond to the values computed when we use the `predict()` function.
+
+# Take 2 with the predict() Function
+
+This time we will arrange the teams in `plotData` in a different order.
+
+```{r}
+# Put Wild first, then CO, then Stars
+plotData2 = rbind(wild, avalanche, stars)
+
+# Compute y-hat values 
+plotData2$yhat = predict(model.f, newdata = plotData2)
+
+# Examine first two predicted values
+plotData2 %>% filter(c.year < -6.1)
+```
+
+Using the same data (just arranged differently), and predicting from the same model, we get completely different predicted values! What happened?
+
+Here the `predict()` function used the Wild's data in Colorado's fitted equation.
+
+```{r}
+14.70640 - 17.306516*c.year + 3.5889653*(c.year^2) + 5.657055*44.94509 + 
+  0.5417028*44.94509*c.year - 0.07254555*44.94509*(c.year^2)
+```
+
+Colorado is the first team of the three alphabetically. In `plotData2`, the Wild's data is first (level 1 in the team factor). Somehow R is using the first level (the Wild) in the first team's (Colorado's) equation. Why? I do not know. Probably something with how the `predict()` function is programmed.
+
+# Solution
+
+There are several solutions: One is to make sure the teams (cluster variable) are in alphabetical order, Colorado Avalanche, Dallas Stars, Minnesota Wild, like it was in the initial `plotData`.
+
+The second solution is to predict for each team individually and then bind them into a single data frame after you do the prediction.
+
+```{r}
+wild = data.frame(
+	c.year = seq(from = -6.2, to = 5.8, by = 0.1),
+	lat = 44.94509,
+	team = "Minnesota Wild"
+	)
+wild$yhat = predict(model.f, newdata = wild)
+
+stars = data.frame(
+	c.year = seq(from = -6.2, to = 5.8, by = 0.1),
+	lat = 32.79069,
+	team = "Dallas Stars"
+	)
+stars$yhat = predict(model.f, newdata = stars)
+
+avalanche = data.frame(
+	c.year = seq(from = -6.2, to = 5.8, by = 0.1),
+	lat = 39.74857,
+	team = "Colorado Avalanche"
+	)
+avalanche$yhat = predict(model.f, newdata = avalanche)
+
+# Bind into a data frame
+plotData = rbind(avalanche, wild, stars)
+plotData2 = rbind(wild, avalanche, stars)
+
+# Examine first two predicted values
+plotData %>% filter(c.year < -6.1)
+plotData2 %>% filter(c.year < -6.1)
+```
+
+In any case, you should always double-check any computer program's computations before submitting a paper (or assignment).
+
+
+
+

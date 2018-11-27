@@ -1,0 +1,108 @@
+---
+title: "Summarizing Results of Multilevel Models in a Table"
+author: "Andrew Zieffler"
+date: "March 29, 2016"
+header-includes:
+   - \usepackage{xcolor}
+   - \definecolor{umn}{RGB}{153, 0, 85}
+   - \definecolor{umn2}{rgb}{0.1843137, 0.4509804, 0.5372549}
+   - \usepackage{rotating}
+   - \usepackage{booktabs}
+output: 
+  pdf_document:
+    highlight: tango
+urlcolor: "umn2"
+---
+
+```{r setup, include=FALSE, message=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r message=FALSE, echo=FALSE, warning=FALSE}
+# Read in the data
+mplsWide = read.csv(file = "/Users/andrewz/Documents/EPsy-8252/data/minneapolis.csv")
+
+# Load libraries
+library(AICcmodavg)
+library(dplyr)
+library(lme4)
+library(tidyr)
+
+# Create long data from wide data (need tidyr package loaded)
+mpls = mplsWide %>% gather(
+  key = time, # Name of the variable that delineates the time points
+  value = read, # Name of the outcome
+  c(read.5, read.6, read.7, read.8) # The old variables you will use as values
+  )
+
+
+# Turn time into a factor
+mpls$time = as.factor(mpls$time)
+
+# Use as.integer() to turn factor into numbers
+mpls = mpls %>% mutate(grade = as.integer(time))
+
+# Use as.integer() to turn factor into numbers
+mpls = mpls %>% mutate(grade = as.integer(time) + 4) %>% mutate(c.grade = grade - mean(grade))
+
+# Fit models
+lmer.0 = lmer(read ~ 1 + (1 | studentID), data = mpls)
+lmer.1 = lmer(read ~ 1 + c.grade + (1 + c.grade | studentID), data = mpls)
+lmer.2 = lmer(read ~ 1 + c.grade +  minority + (1 + c.grade | studentID), data = mpls)
+```
+
+
+
+
+
+
+```{r message=FALSE, results='asis', eval=FALSE, echo=FALSE}
+# 
+# library(texreg)
+# texreg(list(lmer.0, lmer.1, lmer.2), use.packages = FALSE,
+#        caption.above = TRUE,
+#        float.pos = "h", stars = numeric(0), booktabs = TRUE,
+#        custom.model.names = c("Model A", "Model B", "Model C"),
+#        custom.coef.names = c("Intercept", "Grade", "Minority"),
+#        include.nobs = FALSE, include.groups = FALSE, include.aic = TRUE, include.bic = FALSE,
+#        include.deviance = TRUE, include.loglik = FALSE,
+#        reorder.gof = c(3, 5, 6, 4, 2, 1),
+#        sideways = TRUE,  table = TRUE
+#        )
+```
+
+\begin{table}[h]
+\caption{Mixed-effects models fitted to the minneapolis data to predict students' reading scores. All results estimated using REML.}
+\begin{center}
+\begin{tabular}{l c c c }
+\toprule
+ & Model A & Model B & Model C \\
+\midrule
+\multicolumn{4}{l}{Fixed Effects} \\[1ex]
+\hspace{1em} Intercept                          & $212.24$ & $205.75$ & $220.46$ \\
+                                   & $(4.01)$ & $(4.33)$ & $(5.04)$ \\
+\hspace{1em} Grade                              &          & $4.88$   & $4.88$   \\
+                                   &          & $(0.76)$ & $(0.77)$ \\
+\hspace{1em} Minority                           &          &          & $-24.89$ \\
+                                   &          &          & $(6.42)$ \\
+\midrule
+\multicolumn{4}{l}{Variance Components} \\[1ex]
+\hspace{1em} Level-1 $\left(\sigma^2_{\epsilon}\right)$                       & 66.21    & 18.30    & 18.13    \\
+\hspace{1em} Level-2: Intercept $\left(\sigma^2_0\right)$         & 335.38   & 399.12   & 228.69   \\
+\hspace{1em} Level-2: Slope $\left(\sigma^2_1\right)$            &          & 7.55     & 7.80     \\
+\hspace{1em} Level-2: Covariance $\left(\sigma_{01}\right)$  &          & -19.59   & -10.77   \\
+\midrule
+\multicolumn{4}{l}{Pseudo $R^2$ and Goodness-of-Fit} \\[1ex]
+\hspace{1em} $R^2_{Y,\hat{Y}}$                  & 0.878    & 0.974    & 0.975   \\
+\hspace{1em} $R^2_{\epsilon}$                   &          & 0.724    & 0.726   \\
+\hspace{1em} $R^2_{0}$                          &          & $-0.190$ & 0.318   \\
+\hspace{1em} $R^2_{1}$                          &          &          & $-0.033$   \\[1ex]
+\hspace{1em} Deviance                           & 626.50   & 571.70   & 559.78   \\
+\hspace{1em} AICc                               & 628.23   & 578.98   & 564.46   \\
+\bottomrule
+\multicolumn{4}{l}{\scriptsize{}}
+\end{tabular}
+\label{table:coefficients}
+\end{center}
+\end{table}

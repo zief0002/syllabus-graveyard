@@ -1,0 +1,17 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1504\cocoasubrtf810
+{\fonttbl\f0\fnil\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\margl1440\margr1440\vieww10800\viewh9000\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 \
+\
+# Pseudo $R^2$ Values\
+\
+The multilevel model partitions the unexplained variance between level-1 and level-2, but does not actually suggest or quantify how much variation has been explained. Unfortunately there is no clean measure like the $R^2$ value we compute in conventional regression that quantifies the explained variation. There are several measures that mimic this, and as such, are referred to as *pseudo R-squared* measures. We will examine three such measures.\
+\
+### $R^2_\{\\sigma^2_\\epsilon\}$\
+\
+This pseudo R-squared measure is a quantification of the reduction in level-1 error variance from the unconditional random intercepts model. To compute this, we compute the difference between a model's level-1 variance estimate and the unconditional random intercepts level-1 varince estimate and divide by the unconditional random intercepts level-1 varince estimate. This informs us about the proportion of the initial unexplained level-1 variance we have succeeded in explaining by including other predictors. FOr example, to compute this value for Model B,\
+}
