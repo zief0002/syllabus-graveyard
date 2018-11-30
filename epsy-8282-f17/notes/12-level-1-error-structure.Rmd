@@ -1,0 +1,500 @@
+---
+title: "Level-1 Error Structure"
+date: "`r Sys.Date()`"
+header-includes:
+   - \usepackage{xcolor}
+   - \usepackage[framemethod=tikz]{mdframed}
+   - \usepackage{graphicx}
+   - \usepackage{rotating}
+   - \usepackage{booktabs}
+   - \usepackage{xfrac}
+   - \usepackage{array}
+   - \usepackage{tabularx}
+   - \renewcommand\tabularxcolumn[1]{m{#1}}  
+   - \definecolor{umn}{RGB}{153, 0, 85}
+   - \definecolor{umn2}{rgb}{0.1843137, 0.4509804, 0.5372549}
+   - \definecolor{myorange}{HTML}{EA6153}
+output: 
+  pdf_document:
+    highlight: tango
+    latex_engine: xelatex
+    fig_width: 6
+    fig_height: 6
+mainfont: "Bembo Std"
+sansfont: "Helvetica Neue UltraLight"
+monofont: Inconsolata
+urlcolor: "umn2"
+always_allow_html: yes
+bibliography: epsy8282.bib
+csl: apa-single-spaced.csl
+nocite: | 
+  @Long:2012, @Kohli:2016
+---
+
+
+## Preparation
+
+We will use the data in the *rat_weight_2.csv* file. These data are from @Crowder:1990 and
+
+> ...describe data on the body weights of rats measured over 64 days. These data also appear in Table 2.4 of Crowder and Hand (1990). The body weights of the rats (in grams) are measured on day 1 and every seven days thereafter until day 64, with an extra measurement on day 44. The experiment started several weeks before "day 1." There are three groups of rats, each on a different diet.
+
+```{r message=FALSE}
+# Load libraries
+library(tidyverse)
+library(corrr)
+library(lme4)
+library(stringr)
+library(AICcmodavg)
+
+
+# This is to disable scientific notation 
+options(scipen = 99) 
+
+# Read in wide data
+vocab = read_csv("~/Dropbox/epsy-8282/data/vocab.csv")
+
+# Create long data
+vocab_long = vocab %>% 
+  gather(time, score, t8:t11) %>%
+  mutate(
+    grade = as.integer(str_replace(time, pattern = "t", replacement = "")) - 8
+    ) %>%
+  arrange(id, grade) 
+
+head(vocab_long)
+```
+
+\newpage
+
+For this set of notes we will adopt a linear fixed-effect of grade. We will also adopt random-effects of both intercept and grade
+
+$$
+\mathrm{Score}_{ij} = \beta_0 + \beta_1(\mathrm{Grade_{ij}}) + b_{0i} + b_{1i}(\mathrm{Grade_{ij}}) + \epsilon_{ij}
+$$
+
+
+$$
+\begin{split}
+\epsilon_{ij} &\sim \mathcal{N}\big( 0, \sigma^2_{\epsilon}\big) \\[1em]
+\begin{bmatrix}b_{0i} \\ b_{1i} \end{bmatrix} &\sim \mathcal{N}\bigg(\begin{bmatrix}0 \\ 0 \end{bmatrix}, \bigg(\begin{bmatrix}\sigma^2_0 & \sigma_{01} \\ \sigma_{10} & \sigma^2_1 \end{bmatrix} \bigg)
+\end{split}
+$$
+
+
+## Fitting the Model
+
+```{r}
+lmer.1 = lmer(score ~ 1 + grade + (1 + grade | id), data = vocab_long, REML = FALSE)
+print(summary(lmer.1), show.resids = FALSE, correlation = FALSE)
+```
+
+When you fit the mixed-effects model using the `lmer()` function, one of the model assumptions is that the level-1 residuals has an independent error structure. Recall that the independent error structure implies a diagonal matrix with the SAME error variances on the diagonal, and all covariances are FIXED to zero. In a previous set of notes (matrix formulation) we defined this structure for each subject $i$ as,
+
+$$
+\mathbf{W_i} = \sigma^2_{\epsilon}\mathbf{I_i}
+$$
+
+where $\sigma^2_{\epsilon}$ is the variance of the level-1 errors, and $\mathbf{I_i}$ is a $n_i \times n_i$ identity matrix. For our student with four time points,
+
+$$
+\mathbf{W_i} = \begin{bmatrix} 
+\sigma^2_{\epsilon} & 0 & 0 & 0 \\
+0 & \sigma^2_{\epsilon} & 0 & 0 \\
+0 & 0 & \sigma^2_{\epsilon} & 0 \\
+0 & 0 & 0 & \sigma^2_{\epsilon}
+\end{bmatrix}
+$$
+
+To evaluate whether the empirical data correspond to this error structure, we will compute the correlations between the models' residuals at each time point. If the independence assumption is satisfied, these correlations should be zero (or very near zero).
+
+\newpage
+
+```{r warning=FALSE}
+out = broom::augment(lmer.1)
+head(out)
+
+out %>%
+  select(id, grade, .resid) %>%  # Only work with the id, grade and .resid columns
+  spread(grade, .resid) %>%       # Convert these columns to wide data
+  select(-id) %>%               # Drop the Rat column
+  correlate() %>%                # Compute correlation matrix
+  fashion(decimals = 2)
+```
+
+As you see from the correlation matrix, there are some high correlations among the level-1 residuals. 
+
+## Fitting Models with Alternative Level-1 Error Structures
+
+Although the independence assumption is very commonly used in practice, it is possible to allow a more flexible error structure. There are many different error structures you can impose on the error variance-covariance matrix.
+
+Unfortunately, the `lmer()` function is only able to fit the independent error structure. To fit other error structures, we will use the `lme()` function from the **nlme** package. The syntax for `lme()` is very similar to that for `lmer()`. WIth the `lme()` function we specify the random-effects using a formula in the `random=` argument. Here we will again fit the same mixed-effects model as we did with `lmer()` using the `lme()` function.
+
+\newpage
+
+```{r message=FALSE}
+library(nlme)
+
+# Fit model with independent level-1 error structure
+lme.independence = lme(score ~ 1 + grade, random = ~ 1 + grade | id, 
+                       data = vocab_long)
+
+summary(lme.independence)
+```
+
+By default, the `lme()` function also fits the independent error structure. So if you compare the fixed effects and random effects using the functions `lmer()` and `lme()`, you will notice they are very similar. 
+
+Small differences are usual, since the `lmer()` and `lme()` may be using different estimation algorithms. Notice that we also used the default estimation method in `lme()`, which is REML. This is different from the estimation method used in the `lmer()` function (ML). Due to that there will be some differences in the results. 
+
+In general, the fixed-effect estimates will be quite similar. The estimates of the variances of the random-effects and the residual variance will be slightly different depending on the estimation method used. 
+
+**When we are evaluating the error structure, it is advisable to use REML to estimate the model. ** REML estimation results in less-biased variance estimates than ML.
+
+\newpage
+
+## Autocorrelation
+
+The **nlme** package also includes the `ACF()` function, which allows us to evaluate the correlation structure in the residuals of an `lme()` fitted model.
+
+
+```{r}
+ACF(lme.independence)
+```
+
+ 
+
+This gives the model-based autocorrelations. Autocorrelation is the correlation between elements in a timeseries separated by a given interval (called a *lag*). For example, in our model, the autocorrelation for lag 1 ($-0.329$) indicates that the estimated correlation between residuals at time points that are one wave apart (e.g., Time 1 and Time 2) is $-0.329$. The estimated correlation between residuals at time points that are two waves apart (e.g., Time 1 and Time 3) is $-.293$. And so on. For more technical information see @Pinheiro:2000.
+
+If the independence assumption is correct, then we expect all autocorrelations to be near zero (NOT to be significantly different than zero). In this case, it seems that most are larger than 0. 
+
+We can graphically evaluate whether the autocorrelations are significantly different than 0, by plotting the results of the `ACF()` function. 
+
+```{r fig.width=6, fig.height=6, out.width='3in'}
+plot(ACF(lme.independence), alpha = 0.05)
+```
+
+The argument `alpha=` specifies the significance level for approximate two sided critical bounds for the autocorrelation equal to 0. The dashed lines in the plot display the confidence intervals for autocorrelation=0 at each lag. The vertial straight lines are just the magnitude of the model-based autocorrelation at each lag.
+
+The plot suggests that the autocorrelation at lag 1, lag 2, and lag 3 are all significantly different than 0. Hence, we might reject the independence assumption. This plot might also help you to decide what kind of correlational structure you would like to impose on the level-1 errors.
+
+## Alternative Level-1 Error Structures
+
+The advantage of the `lme()` function over the `lmer()` function is that it allows us to fit different level-1 error variance--covariance structures. To do this we include the argument `correlation=` in the `lme()` function and specify the structure we want to immpose. 
+
+### Unstructured
+
+One alternative error structure is unstructured. This error structure allows a different variance for every time point and different covariance between each set of time points. For our four time point example, the within-subjects unstructured variance--covariance matrix is (only the lower half of the matrix is shown since the matrix is symmetric):
+
+$$
+\mathbf{W_i} = \begin{bmatrix} 
+\sigma^2_{1} &  &  &  \\
+\sigma_{12} & \sigma^2_{2} &  &  \\
+\sigma_{13} & \sigma_{23} & \sigma^2_{3} &  \\
+\sigma_{14} & \sigma_{24} & \sigma_{34} & \sigma^2_{4}
+\end{bmatrix}
+$$
+
+In this structure we would be estimating four variances and six covariances. We can fit an unstructured error matrix by specifying the argument `correlation=corSymm()`. This tells `lme()` that the variance--covariance structure is symmetric. We also need to use `weights=varIdent(form = ~ 1 | Time)` to allow the variances to differ. `Time` is the variable depicting time in your model. Without this argument, the estimated variance terms on the diagonal will be identical.
+
+```{r}
+lme.us = lme(score ~ 1 + grade, random = ~ 1 + grade | id,         
+                    data = vocab_long, correlation = corSymm(),
+                    weights = varIdent(form = ~ 1 | grade) )
+
+summary(lme.us)
+```
+
+Note: Sometimes with the unstructured error matrix, you end up trying to estimate too many parameters given the information (data) provided to the model. In such cases you may get an error letting you knw the estimation did not converge.
+
+To obtain the model-estimated within-subjects error matrix, we use the `getVarCov()` function and include the argument `type = "conditional"`.
+
+```{r}
+getVarCov(lme.us, type = "conditional")
+```
+
+The model-estimated within-subjects error matrix is
+
+$$
+\begin{split}
+\hat{\mathbf{W_i}} &= \begin{bmatrix} 
+0.594 &  &  &  \\
+0.261 & 1.779 &  &  \\
+0.609 & 0.752 & 1.760 &  \\
+-0.081 & 0.036 & 0.345 & 0.622
+\end{bmatrix}
+\end{split}
+$$
+
+
+
+
+
+### Compound Symmetry
+
+One alternative error structure is compound symmetry. Recall that compound symmetry defines an error structure that has constant variances at each time point and also imposes a non-zero constant covariance among errors at different time points. The within-subjects matrix for compound symmetry is:
+
+$$
+\mathbf{W_i} = \begin{bmatrix} 
+\sigma^2_{\epsilon} & \sigma_c & \sigma_c & \sigma_c \\
+\sigma_c & \sigma^2_{\epsilon} & \sigma_c & \sigma_c \\
+\sigma_c & \sigma_c & \sigma^2_{\epsilon} & \sigma_c \\
+\sigma_c & \sigma_c & \sigma_c & \sigma^2_{\epsilon}
+\end{bmatrix}
+$$
+
+In general, the correlation ($\rho$) between two variables $X$ and $Y$ is just a function of the covariance between them and the standard deviations of those variables,
+
+$$
+\rho_{XY} = \frac{\mathrm{Cov}(XY)}{\mathrm{SD}(X)\cdot\mathrm{SD}(Y)}
+$$
+
+Thus the correlation between any two time points when we have compund symmetry is equal to 
+
+$$
+\rho = \frac{\sigma_c}{\sigma^2_{\epsilon}}
+$$
+
+since we assume constant variances. Because the covariances are also all equal in the compound symmetry structure, this means that the correlation bewteen every two time points is identical. Sometimes the matrix is wriiten using the correlations rather than the covariances,
+
+$$
+\mathbf{W_i} = \begin{bmatrix} 
+\sigma^2_{\epsilon} & \rho & \rho & \rho \\
+\rho & \sigma^2_{\epsilon} & \rho & \rho \\
+\rho & \rho & \sigma^2_{\epsilon} & \rho \\
+\rho& \rho & \rho & \sigma^2_{\epsilon}
+\end{bmatrix}
+$$
+
+
+We force a compound symmetric error structure by specifying the argument `correlation=corCompSymm()`. We also specify an initial estimate for the $\rho$ parameter. For example, in the syntax below, we fit the model using a compound symmetric structure initiated with $\rho=0.3$.
+
+
+```{r}
+lme.cs = lme(score ~ 1 + grade, random = ~ 1 + grade | id,         
+                    data = vocab_long, correlation = corCompSymm(.3))
+
+summary(lme.cs)
+```
+
+In the output, we see that the final model-based estimate of $\rho$ is $\hat\rho=-.007$. From the output we can also obtain the estimated error variance (0.895). Computing the covariance estimate, we get $\sigma_c = \rho\sigma^2_{\epsilon} = -.007(0.895)=-.006$. The model-estimated within-subjects error matrix is then,
+
+$$
+\begin{split}
+\hat{\mathbf{W_i}} &= \begin{bmatrix} 
+0.895 &  &  &  \\
+-0.006 & 0.895 &  &  \\
+-0.006 & -0.006 & 0.895 &  \\
+-0.006 & -0.006 & -0.006 & 0.895
+\end{bmatrix}
+\end{split}
+$$ 
+
+
+This can be verfied using R.
+
+```{r}
+getVarCov(lme.cs, type = "conditional")
+```
+
+#### Compound Symmetry ($\rho = 0.5$)
+
+
+If you specify a different starting value for $\rho$ other than 0.3, it is likely that you will get a different final estimate.
+
+```{r}
+lme.cs2 = lme(score ~ 1 + grade, random = ~ 1 + grade | id,         
+                    data = vocab_long, correlation = corCompSymm(.5))
+
+summary(lme.cs2)
+
+#getVarCov(lme.cs2, type = "conditional")
+```
+
+As you see in the output, the final estimated value is now $\hat\rho=.114$. The value you specify is a personal judgement. The model-estimated within-subjects error matrix from this model is:
+
+$$
+\begin{split}
+\hat{\mathbf{W_i}} &= \begin{bmatrix} 
+1.018 &  &  &  \\
+0.117 & 1.018 &  &  \\
+0.117 & 0.117 & 1.018 &  \\
+0.117 & 0.117 & 0.117 & 1.018
+\end{bmatrix}
+\end{split}
+$$ 
+
+#### Compound Symmetry ($\rho = 0$)
+
+Finally, if you do not specify an initial estimate fro $\rho$, the starting values is taken as 0 by default.
+
+```{r}
+lme.cs3 = lme(score ~ 1 + grade, random = ~ 1 + grade | id,         
+                    data = vocab_long, correlation = corCompSymm())
+
+summary(lme.cs3)
+
+#getVarCov(lme.cs3, type = "conditional")
+``` 
+
+The model-estimated within-subjects error matrix from this model is:
+
+$$
+\begin{split}
+\hat{\mathbf{W_i}} &= \begin{bmatrix} 
+0.772 &  &  &  \\
+-0.129 & 0.772 &  &  \\
+-0.129 & -0.129 & 0.772 &  \\
+-0.129 & -0.129 & -0.129 & 0.772
+\end{bmatrix}
+\end{split}
+$$ 
+
+#### Compound Symmetry ($\rho = 0.5$, Fixed)
+
+If you have theoretical reason to do so, you can also fix the correlation at the given value by specifying the $\rho$ value and also including the argument `fixed=TRUE`. This forces the final estimate of $\rho$ to be whatever value is specified.
+
+```{r}
+lme.cs4 = lme(score ~ 1 + grade, random = ~ 1 + grade | id,         
+                    data = vocab_long, correlation = corCompSymm(.5, fixed = TRUE))
+
+summary(lme.cs4)
+
+#getVarCov(lme.cs4, type = "conditional")
+``` 
+
+Here, the model-estimated within-subjects error matrix from this model is:
+
+$$
+\begin{split}
+\hat{\mathbf{W_i}} &= \begin{bmatrix} 
+1.802 &  &  &  \\
+0.901 & 1.802 &  &  \\
+0.901 & 0.901 & 1.802 &  \\
+0.901 & 0.901 & 0.901 & 1.802
+\end{bmatrix}
+\end{split}
+$$ 
+
+#### Comparison of the Compound Symmetry Models
+
+```{r eval=FALSE, echo=FALSE}
+stargazer::stargazer(lme.cs, lme.cs2, lme.cs3, lme.cs4)
+```
+
+\begin{table}[!htbp] \centering 
+\begin{tabular}{@{\extracolsep{5pt}}lcccc} 
+\\[-1.8ex] 
+\hline \\[-1.8ex] 
+\\[-1.8ex] & \multicolumn{4}{c}{Compund Symmetric Models} \\ 
+\\[-1.8ex] & $\rho=0.3$ & $\rho=0.5$ & $\rho=0$ & $\rho=0.5$, Fixed\\ 
+\hline \\[-1.8ex] 
+\textit{Fixed-Effects} & & & & \\[2ex]
+ Grade & 0.747$^{***}$ & 0.747$^{***}$ & 0.747$^{***}$ & 0.747$^{***}$ \\ 
+  & (0.053) & (0.053) & (0.053) & (0.053) \\ 
+  & & & & \\ 
+ Constant & 1.413$^{***}$ & 1.413$^{***}$ & 1.413$^{***}$ & 1.413$^{***}$ \\ 
+  & (0.246) & (0.246) & (0.246) & (0.246) \\ 
+  & & & & \\ 
+\hline \\[-1.8ex] 
+\textit{Variance Components} & & & & \\[2ex] 
+$\hat\sigma^2_{b_{0i}}$   & 3.243       & 3.120       & 3.366       & 2.336 \\ 
+$\hat\sigma^2_{b_{1i}}$   & 0.000000020 & 0.000000018 & 0.000000014 & 0.000000004 \\ 
+$\hat\sigma^2_{\epsilon}$ & 0.895       & 1.018       & 0.772       & 1.802 \\ 
+\hline \\[-1.8ex] 
+\multicolumn{5}{l}{\textit{Note.} $^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\ 
+\end{tabular} 
+\end{table} 
+
+
+In all the models fitted, the fixed-effects are essentially the same, regardless of the $\rho$ value. The estimated error variance, and the variance of the random-effects depends on the covariances (or correlation) that is estimated.  
+
+\newpage
+
+### Autoregressive Structures
+
+Autoregressive structures specify that the correlation at the same lag values are correlated equally. In the *first order autoregressive* structure, AR(1), the correlation between any two residuals $e_i$ and $e_j$ is a power of a single correlation parameter ($\rho$) and the ordination of measurement occasions (the lag). That is,
+
+$$
+\mathrm{Corr}(e_i,e_j) = \rho^{\big| i-j\big|}
+$$
+
+This implies that the larger the lag, the weaker the serial correlation. The AR(1) error structure is
+
+$$
+\mathbf{W_i} = \begin{bmatrix} 
+\sigma^2_{\epsilon} &  &  &  \\
+\rho\sigma^2_{\epsilon} & \sigma^2_{\epsilon} &  &  \\
+\rho^2\sigma^2_{\epsilon} & \rho\sigma^2_{\epsilon} & \sigma^2_{\epsilon} &  \\
+\rho^3\sigma^2_{\epsilon} & \rho^2\sigma^2_{\epsilon} & \rho\sigma^2_{\epsilon} & \sigma^2_{\epsilon}
+\end{bmatrix}
+$$
+
+Not only do time points separated by the same lag have the same covariance (correlation), but the correlation in each diagonal band is less than (or equal to) the diagonal bands above it and greater than (or equal to) the diagonal bands below it.
+
+$$
+\rho \leq \rho^2 \leq \rho^3
+$$
+
+To fit this structure, we use `correlation=corAR1()`.
+
+```{r}
+lme.ar1 = lme(score ~ 1 + grade, random = ~ 1 + grade | id,         
+                    data = vocab_long, correlation = corAR1())
+
+summary(lme.ar1)
+``` 
+
+The estimated $\rho$ for the first order autoregressive error structure is $-0.035$. We also see that the residual variance estimate is $0.941^2=0.885$.  Thus,
+
+$$
+\begin{split}
+\hat{\mathbf{W_i}} &= \begin{bmatrix} 
+0.885 &  &  &  \\
+(-0.035)(0.885) & 0.885 &  &  \\
+(-0.035)^2(0.885) & (-0.035)(0.885) & 0.885 &  \\
+(-0.035)^3(0.885) & (-0.035)^2(0.885) & (-0.035)(0.885) & 0.885
+\end{bmatrix} \\
+&= \begin{bmatrix} 
+0.885 &  &  &  \\
+-0.031 & 0.885 &  &  \\
+-0.0011 & -0.031 & 0.885 &  \\
+-0.00004 & -0.0011 & -0.031 & 0.885
+\end{bmatrix}
+\end{split}
+$$
+
+
+We can again get the same result directly using R
+
+```{r}
+# Obtain estimated W_i matrix
+getVarCov(lme.ar1, type = "conditional")
+```
+
+
+
+As a practical note, the AR(1) structure only makes sense if the measurement occasions are equally spaced.
+
+## Other Structures
+
+There are several other error structures as well (e.g., Toeplitz, banded diagonal, banded two). Most of the textbooks recommended for the course discuss several of these structures, including @Fitzmaurice:2011, @Pinheiro:2000, and @Singer:2003.
+
+\newpage
+
+## Comparing Error Structures
+
+To compare models fitted with different level-1 error structures, we can compare the information criteria. In our example,
+
+```{r}
+aictab(
+  cand.set = list(lme.independence, lme.us, lme.cs, lme.ar1),
+  modnames = c("Independent", "Unstructured", "Compound Symmetry", "AR(1)")
+  )
+```
+
+
+The empirical evidence supports three level-1 residual structures: independent, first-order autoregressive, and compound symmetry. I would probably adopt the independent structure as it is the most parsimonious of the error structures. 
+
+
+## References
+
+

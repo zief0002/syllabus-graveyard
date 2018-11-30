@@ -1,0 +1,543 @@
+---
+title: "GLMER: Count Data"
+date: "`r Sys.Date()`"
+header-includes:
+   - \usepackage{xcolor}
+   - \usepackage[framemethod=tikz]{mdframed}
+   - \usepackage{graphicx}
+   - \usepackage{rotating}
+   - \usepackage{booktabs}
+   - \usepackage{xfrac}
+   - \usepackage{array}
+   - \usepackage{tabularx}
+   - \renewcommand\tabularxcolumn[1]{m{#1}}  
+   - \definecolor{umn}{RGB}{153, 0, 85}
+   - \definecolor{umn2}{rgb}{0.1843137, 0.4509804, 0.5372549}
+   - \definecolor{myorange}{HTML}{EA6153}
+output: 
+  pdf_document:
+    highlight: tango
+    latex_engine: xelatex
+    fig_width: 6
+    fig_height: 6
+mainfont: "Bembo Std"
+sansfont: "Helvetica Neue UltraLight"
+monofont: Inconsolata
+urlcolor: "umn2"
+always_allow_html: yes
+bibliography: epsy8282.bib
+csl: apa-single-spaced.csl
+nocite: | 
+  @Neighbors:2010
+---
+
+
+## Preparation
+
+We will use the data in the *RAPI.csv* file. These data are from @Atkins:2013 and
+
+> ...is drawn from an intervention study aimed at reducing problematic drinking in college students (Neighbors et al., 2010). The current paper focuses on gender differences across two years in alcohol-related problems, as measured by the Rutgers Alcohol Problem Index (RAPI). The dataset includes 3,616 repeated measures across five time points from 818 individuals (p. 167).
+
+```{r message=FALSE}
+# Load libraries
+library(tidyverse)
+library(corrr)
+library(gridExtra)
+library(lme4)
+library(AICcmodavg)
+
+
+# This is to disable scientific notation 
+options(scipen = 99) 
+
+# Read in long data
+rapi = read_csv("~/Dropbox/epsy-8282/data/RAPI.csv")
+head(rapi)
+
+```
+
+The variables include:
+
+- `id`: The ID for the college student
+- `rapi`: The RAPI score indicating the number of self-reported alcohol-related problems for the student at a given time point.
+- `male`: Dummy coded gender variable (0 = Female; 1 = Male)
+- `time`: Time in months since the introduction of intervention (0, 6, 12, 18, 24)
+
+\newpage
+
+## Exploration
+
+We begin by exploring both the marginal distribution of RAPI scores and the conditional distributions of RAPI scores over time.
+
+```{r fig.width=10, fig.height=5, out.width='4in', message=FALSE}
+p1 = ggplot(data = rapi, aes(x = rapi)) +
+  geom_histogram(fill = "yellow", color = "black") +
+  theme_bw() +
+  xlab("Number of alcohol-related problems") +
+  ylab("Frequency")
+
+p2 = ggplot(data = rapi, aes(x = time, y = rapi, group = time)) +
+  geom_boxplot(fill = "yellow", color = "black") +
+  theme_bw() +
+  xlab("Time (in months)") +
+  ylab("Number of alcohol-related problems")
+
+grid.arrange(p1, p2, ncol = 2)
+```
+
+```{r}
+# Marginal Mean, SD, and Variance
+rapi %>% summarize(M = mean(rapi), SD = sd(rapi), Var = var(rapi))
+
+# Conditional Mean, SD, and Variance by gender and time point
+rapi %>% group_by(male, time) %>% summarize(M = mean(rapi), SD = sd(rapi), Var = var(rapi))
+```
+
+Not surprisingly, the marginal and conditional distributions are right-skewed with several individuals reporting zero or low numbers of alcohol-related problems. Summary statistics reveal that there is a great deal of variability in the number of alcohol-related problems being reported, and in general, men report more alcohol-related problems than women (and also display more variation). They also suggest that the number of problems is diminishing over time, albeit slightly.
+
+Plotting the mean profile for each gender (and for the entire sample) suggests some non-linearity in the change curve. 
+
+```{r fig.width=6, fig.height=6, out.width='3.5in', message=FALSE}
+ggplot(data = rapi, aes(x = time, y = rapi)) +
+  stat_summary(aes(color = factor(male)), geom = "line",  fun.y = mean, linetype = "dashed") +
+  stat_summary(aes(color = factor(male)), geom = "point", fun.y = mean) +
+  stat_summary(aes(group = time), geom = "line", fun.y = mean, color = "black", group = 1) +
+  stat_summary(aes(group = time), geom = "point", fun.y = mean, color = "black") +
+  theme_bw() +
+  xlab("Time (in months)") +
+  ylab("Average Number of alcohol-related problems") +
+  ggsci::scale_color_d3(name = "", labels = c("Females", "Males"))
+
+```
+
+## Examining Change Profiles
+
+Below we plot the change profiles for a random sample of 20 students. The individual linear fitted regressions are also displayed.
+
+```{r fig.width=6, fig.height=6, out.width='3.5in', message=FALSE}
+# Obtain ID numbers
+IDs = unique(rapi$id)
+
+# Choose random sample of ID numbers (Sample w/o replacement)
+set.seed(200)
+my_samp = sample(IDs, size = 20, replace = FALSE)
+
+# Get data for students in the sample
+rapi_srs = rapi %>% filter(id %in% my_samp) 
+
+# Plot
+ggplot(data = rapi_srs, aes(x = time, y = rapi, group = id)) +
+  geom_line(color = "grey", alpha = 0.8) +
+  theme_bw() +
+  xlab("Time (in months)") +
+  ylab("Number of alcohol-related problems") +
+  facet_wrap(~id) +
+  geom_smooth(method = "lm", se = FALSE)
+
+```
+
+The plot shows:
+
+- A general pattern of decline in problems over the course of the study
+- Variation in individuals' intercepts
+- Variation in individuals' change over time (slopes)
+
+This leads us to adopt random-effects of both intercept and time. We will begin by fitting a linear mixed-effects model with random intercepts and slopes to the data.
+
+```{r message=FALSE, fig.width=6, fig.height=6, out.width='3.5in', warning=FALSE}
+lmer.1 = lmer(rapi ~ 1 + time + (1 + time | id), data = rapi, REML = FALSE)
+out1 = broom::augment(lmer.1)
+
+ggplot(data = out1, aes(x = .fitted, y = .resid)) +
+  geom_point() +
+  geom_hline(yintercept = 0) +
+  geom_smooth(se = FALSE) +
+  theme_bw()
+
+sm::sm.density(out1$.resid, model = "normal")
+```
+
+The residuals versus the fitted values show major violations of the models' assumptions. The plot displays growing variance, and non-linearity.
+
+## Poisson Regression: Modeling Count Data
+
+We could try to transform the data to alleviate these problems. We could also fit a model that allows a more flexible error structure (e.g., non-normal errors). A better model when dealing with count data is to use a *Generalized Linear Mixed-Effects Regression Model* (GLMER). These models are the mixed-effects counterpart to the Generalized Linear Models. 
+
+Recall that Generalized Linear Models have three major components: (1) a linear predictor specifying a linear function of predictors; (2) a link function which transforms the expectation of the outcome to the linear predictor; and (3) a random component specifiying the conditional distributions of the outcome.
+
+For count data, there are several possibilities, but we will start by fitting a model that assumes Poisson distributed outcomes with a log-link function. The multilevel unconditional growth model is:
+
+
+$$
+\ln\bigg(E(\mathrm{RAPI}_{ij})\bigg) = \beta_0 + \beta_1(\mathrm{Time_{ij}}) + b_{0i} + b_{1i}(\mathrm{Time_{ij}}) + \epsilon_{ij}
+$$
+
+where $\epsilon_{ij}$ are distributed as Poisson with $\lambda$. (The parameter $\lambda$ is the rate parameter). To fit this model as a fixed-effects only model, we use the `glm()` function.
+
+```{r}
+glm.1 = glm(rapi ~ 1 + time, data = rapi, family = poisson(link = "log"))
+summary(glm.1)
+```
+
+The fitted equation is
+
+$$
+\ln\bigg(E(\hat{\mathrm{RAPI}}_{ij})\bigg) = 1.92 - 0.007(\mathrm{Time_{ij}})
+$$
+
+To interpret these, we back-transform using the inverse link function. Since here we used a log-link, to back-transform, we exponentiate. Back-transforming the fitted model we get
+
+
+$$
+\begin{split}
+e^{\ln\bigg(E(\hat{\mathrm{RAPI}}_{ij})\bigg)} &= e^{1.92 - 0.007(\mathrm{Time_{ij}})} \\
+E(\hat{\mathrm{RAPI}}_{ij}) &= e^{1.92} \times e^{- 0.007(\mathrm{Time_{ij}})}
+\end{split}
+$$
+At time = 0, the estimated average RAPI score is
+
+$$
+\begin{split}
+&= e^{1.92} \times e^{- 0.007(0)} \\
+&= 6.82 \times 1 \\
+&= 6.82
+\end{split}
+$$
+
+The estimated average number of alcohol-related problems at time 0 is 6.82. This is the same as directly back-transforming the intercept:
+
+$$
+\begin{split}
+e^{1.92} \times e^{- 0.007(1)} &= 6.82 \\
+&= 6.82 \times 0.9930244 \\
+&= 6.77
+\end{split}
+$$
+
+The estimated RAPI decreases by a factor of 0.99. This is the value we get if we back-transform the slope directly,
+
+$$
+e^{-0.007} = 0.99
+$$
+
+Another way to interpret this is to use the coefficient of $-0.007$ and interpret that as the percent change. Each one month difference is associated with a 0.7\% decrease in the number of alcohol-related problems, on average.
+
+
+## Mixed-Effects Poisson Model 
+
+To include random-effects in the generalized model we use the `glmer()` function (from the **lme4** package). For example, to include both fixed- and random-effects of time we use:
+
+```{r}
+# Fit random-intercept model
+glmer.1 = glmer(rapi ~ 1 + time + (1 + time | id), data = rapi, family = poisson(link = "log"))
+summary(glmer.1)
+```
+
+Based on the output,
+
+- The estimated average number of alcohol-related problems reported at the onset of the study is 4.77 ($e^{1.56}$), conditional on the random-effects.
+- Each month of the intervention is associated with a 3\% decrease in the number of alcohol-related problems reported, conditional on the random-effects.
+
+In GLMER models, the *conditional on the random-effects* part of the interpretation is rather important. In LMEr models, we don't say this because the interpretation of a fixed-effect is considered to be "averaged over" the random-effects. (It is a marginal effect.) Consider the fitted LMER model
+
+$$
+\hat{Y}_{ij} = \hat\beta_0 + \hat\beta_1(\mathrm{Time}_{ij}) + \hat{b}_{0i} + \hat{b}_{1i}(\mathrm{Time}_{ij})
+$$
+
+Since the random-effects have mean=0, when we average across them, they are not contributing anything to the population-average model (the two random-effects are both 0, so addign them to the fixed-effects part just gives the fixed-effects). Thus the interpretations of the fixed-effects are the population-average model.
+
+
+This is not true for GLMER models. The link function changes everything.
+
+$$
+\ln\bigg(\hat{Y}_{ij}\bigg) = \hat\beta_0 + \hat\beta_1(\mathrm{Time}_{ij}) + \hat{b}_{0i} + \hat{b}_{1i}(\mathrm{Time}_{ij})
+$$
+
+The random-effects are still assumed to have a mean of 0, but only on the linear predictor scale; not on the original scale of $Y$. For that, we need to exponentiate the right-hand side of the equation. Now the random-effects are adding to the fixed-effects ($e^0 \neq 0$).
+
+
+### Random-Effects
+
+You can access the estimated random-effects using the `ranef()` function, the same way we did for `lmer()` models.
+
+```{r}
+head(ranef(glmer.1)$id)
+```
+
+The fitted equation for Student 01 is:
+
+$$
+\begin{split}
+\ln\bigg(E(\mathrm{RAPI}_{ij})\bigg) &= 1.563 - 0.031(\mathrm{Time_{ij}}) - 1.674 - 0.023(\mathrm{Time_{ij}}) \\
+&= -0.111 - 0.054(\mathrm{Time_{ij}})
+\end{split}
+$$
+
+- The estimated average number of alcohol-related problems reported at the onset of the study for Student 01 is 0.89 ($e^{-0.111}$)
+- Each month of the intervention is associated with a 5\% decrease in the number of alcohol-related problems reported for Student 01.
+
+
+## Gender Effect
+
+To examine whether there is a main-effect of gender, we include `male` as a fixed-effect in the model.
+
+```{r}
+# Fit random-intercept model
+glmer.2 = glmer(rapi ~ 1 + time + male + (1 + time | id), data = rapi, family = poisson(link = "log"))
+summary(glmer.2)
+```
+
+Based on the output,
+
+- The estimated average number of alcohol-related problems reported at the onset of the study for females is 4.28 ($e^{1.45}$), conditional on the random-effects.
+- Each month of the intervention is associated with a 3\% decrease in the number of alcohol-related problems reported, controlling for differences in gender, conditional on the random-effects.
+- Males report 29\% more problems than females, controlling for differences in time and conditional on the random-effects.
+
+# Interaction between Time and Gender
+
+```{r}
+# Fit random-intercept model
+glmer.3 = glmer(rapi ~ 1 + time + male + time:male + (1 + time | id), data = rapi, family = poisson(link = "log"))
+summary(glmer.3)
+```
+
+Based on the output,
+
+- There is an interaction-effect between time and gender. The longitudinal change is differernt for males and females. 
+
+This suggests that males and females have different longitudinal profiles. We can compute the fitted equations for males and females by substituting in the aprropriate 0/1 value for the `male` predictor. 
+
+$$
+\begin{split}
+\mathbf{Females:~} \ln\bigg(E(\mathrm{RAPI}_{ij})\bigg) &= 1.480 - 0.038(\mathrm{Time_{ij}}) \\
+\mathbf{Males:~} \ln\bigg(E(\mathrm{RAPI}_{ij})\bigg) &= \big[1.480 + 0.197\big] - \big[0.038 + 0.017\big](\mathrm{Time_{ij}})
+\end{split}
+$$
+
+Back-transforming these results leads us to the direct coefficient interpretations:
+
+- The estimated average number of alcohol-related problems reported at the onset of the study for females is 4.39 ($e^{1.480}$), conditional on the random-effects.
+- For females, each month of the intervention is associated with a 3.8\% decrease in the number of alcohol-related problems reported, conditional on the random-effects.
+- Males report 21\% more problems than females at the onset of the study, conditional on the random-effects.
+- For males, each month of the intervention is associated with a decrease that is 1.7\% greater than that of females, conditional on the random-effects.
+
+To understand this further, we will plot the fitted growth patterns for males and females. We do this the the same way we did for LMERs. The only differences is that when we use the `predict()` function for a GLMER, we specify `type="response"` to back-transform the estimates back to the scale of the response variable.
+
+```{r fig.width=8, fig.height=6, out.width='4in'}
+my_data = expand.grid(
+  time = c(0, 6, 12, 18, 24),
+  male = c(0, 1)
+)
+
+# Get y-hat values (use type="response")
+my_data$yhat = predict(glmer.3, newdata = my_data, re.form = NA, type = "response")
+
+# Coerce male into a categorical factor for better plotting
+my_data$gender = factor(my_data$male, levels = c(0, 1), labels = c("Female", "Male"))
+
+# Plot the fitted growth patterns
+ggplot(data = my_data, aes(x = time, y = yhat, color = gender)) +
+  geom_line() +
+  theme_bw() +
+  xlab("Time (in months)") +
+  ylab("Estimated Number of Alcohol-Related Problems") +
+  ggsci::scale_color_d3(name = "")
+```
+
+The estimated change profile show that in general, females report fewer alcohol-related problems than males, and that the number of alcohol-related problems for both sexes decrease over the course of the study. Females also show a greater-rate of decrease than males. 
+
+
+
+# Overdispersion
+
+Recall that the Poisson distribution posits that the mean and varaince are identical. From our summary measures (presented earlier) it seems that the variances are greater than the means. This suggests *overdispersion*. To fit an overdispersed Poisson model, we (1) create a per-observation term in the data and (2) include that term as a second random-effect in the model.
+
+
+
+```{r}
+# Create the per-observation error term
+rapi$over = 1:nrow(rapi)
+
+# Include the term as a second random-effect in the model
+glmer.4 = glmer(rapi ~ 1 + time + male + time:male + (1 + time | id) + (1 | over), 
+                data = rapi, family = poisson(link = "log"))
+```
+
+Then, since the original Poisson interaction model is nested in the overdispersed model, we can examine the necessity of the overdispersion by carrying out a likelihood ratio test.
+
+```{r}
+anova(glmer.3, glmer.4)
+```
+
+This test suggests that there is a statistically significant reduction in the deviance when including the overdispersion parameter. The fixed-effects are interpreted the same way from this model, only now they account for the overdispersion in the data.
+
+```{r fig.width=8, fig.height=6, out.width='4in'}
+# Examine output
+summary(glmer.4)
+```
+
+Substituting the appropriate 0/1 value for `male` and back-transforming these results:
+
+- The estimated average number of alcohol-related problems reported at the onset of the study for females is 4.00 ($e^{1.387}$), conditional on the random-effects.
+- For females, each month of the intervention is associated with a 3.8\% decrease in the number of alcohol-related problems reported, conditional on the random-effects.
+- Males report 20\% more problems than females at the onset of the study, conditional on the random-effects.
+- For males, each month of the intervention is associated with a decrease that is 1.6\% greater than that of females, conditional on the random-effects.
+
+Again, to help understand these interpretations, we can plot these results.
+
+```{r fig.width=8, fig.height=6, out.width='4in'}
+# Plot the fitted growth patterns
+# Get y-hat values (use type="response")
+my_data$yhat2 = predict(glmer.4, newdata = my_data, re.form = NA, type = "response")
+
+ggplot(data = my_data, aes(x = time, y = yhat2, color = gender)) +
+  geom_line(linetype = "dashed") +
+  geom_line(aes(y = yhat)) +
+  theme_bw() +
+  xlab("Time (in months)") +
+  ylab("Estimated Number of Alcohol-Related Problems") +
+  ggsci::scale_color_d3(name = "")
+```
+
+*Figure X.* Plot of the fitted longitudinal profiles for the Poisson model (solid lines) and the Poisson model with an overdispersion parameter (dashed lines).
+
+## Negative Binomial Random-Effects Model
+
+Another model that directly allows for overdispersion is the negative binomial model. Because it directly fits overdispersion, it does not require the overdispersion random-effect in the model.
+
+```{r}
+library(glmmTMB)
+
+glmer.5 = glmmTMB(rapi ~ 1 + time + male + time:male + (1 + time | id), data = rapi, family = nbinom2)
+summary(glmer.5)
+```
+
+These estimates are interpreted similarly to the Poisson model estimates. Because there is a significant interaction, we will again plot the fitted growth profiles. 
+
+Substituting the appropriate 0/1 value for `male` and back-transforming these results:
+
+- The estimated average number of alcohol-related problems reported at the onset of the study for females is 4.85 ($e^{1.578}$), conditional on the random-effects.
+- For females, each month of the intervention is associated with a 3.8\% decrease in the number of alcohol-related problems reported, conditional on the random-effects.
+- Males report 20\% more problems than females at the onset of the study, conditional on the random-effects.
+- For males, each month of the intervention is associated with a decrease that is 1.6\% greater than that of females, conditional on the random-effects.
+
+Again, to help understand these interpretations, we can plot these results. The `predict()` function for `glmmTMB` models only allows us to obtain predictions of the fixed- and random-effects. Since we want only the estimates of the fixed-effects, we need to compute them from the fitted model.
+
+```{r fig.width=8, fig.height=6, out.width='4in'}
+# Get y-hat values (use type="response")
+my_data$yhat3 = exp(1.578063 + -0.038071*my_data$time + 0.199203*my_data$male + 0.016486*my_data$time*my_data$male)
+
+# Plot the fitted growth patterns
+ggplot(data = my_data, aes(x = time, y = yhat3, color = gender)) +
+  geom_line(linetype = "dotted") +
+  geom_line(aes(y = yhat)) + 
+  geom_line(aes(y = yhat2), linetype = "dashed") + 
+  theme_bw() +
+  xlab("Time (in months)") +
+  ylab("Estimated Number of Alcohol-Related Problems") +
+  ggsci::scale_color_d3(name = "")
+```
+
+*Figure X.* Plot of the fitted longitudinal profiles for the (1) Poisson model (solid lines); (2) Poisson model with an overdispersion parameter (dashed lines); and (3) negative binomial model.
+
+To determine fit between the Poisson model with overdispersion and the negative binomial model we could examine the AIC indices.
+
+```{r}
+# Poisson
+AIC(glmer.3)
+
+# Poisson with overdispersion
+AIC(glmer.4)
+
+# Negative binomial
+AIC(glmer.5)
+```
+
+
+# Zero Inflated Model
+
+One issue with count data that can affect the fit of the Poisson model is a large number of zeros. The histogram shows several zeros in the observed data.
+
+```{r fig.width=10, fig.height=5, out.width='4in', message=FALSE}
+ggplot(data = rapi, aes(x = rapi)) +
+  geom_histogram(fill = "yellow", color = "black") +
+  theme_bw() +
+  xlab("Number of alcohol-related problems") +
+  ylab("Frequency")
+```
+
+From this plot we see zero is the most commmon self-reported score. Are there an excess number of zeros? To determine this, we can fit a zero inflated model and compare it to the non-zero inflated negative binomial model. The [UCLA Institute for Digital Research and Education](https://stats.idre.ucla.edu/stata/output/zero-inflated-negative-binomial-regression/) says this about zero inflated models: 
+
+> The zero-inflated negative binomial regression generates two separate models and then combines them. First, a logit model is generated for the “certain zero” cases described above, predicting whether or not a student would be in this group.  Then, a negative binomial model is generated predicting the counts for those students who are not certain zeros.  Finally, the two models are combined. 
+
+To fit a zero inflated model, we need to specify both models: the count model and the model predicting the certain zeros. The second model is specified via the argument `ziformula=` in the `glmmTMB()` function. This takes a model formula that specifies the model to estimate for the excess zeros. Below we are predicting count using time, gender, and the interaction between time and gender. We predict the certain zeros using the same set of predictors. Note that the model that included random-effects of intercept and time did not converge, so we dropped the RE of time.
+
+```{r}
+# Model does not converge
+# glmer.6 = glmmTMB(rapi ~ 1 + time + male + time:male + (1 + time | id), data = rapi, 
+#                   family = nbinom2, zi = ~ 1 + time + male + time:male)
+
+
+glmer.7 = glmmTMB(rapi ~ 1 + time + male + time:male + (1 | id), data = rapi, 
+                  family = nbinom2, zi = ~ 1 + time + male + time:male)
+
+summary(glmer.7)
+```
+
+There are two sets of estimated coefficents in the output. The estimates under the "Conditional model" part of the output are the regression coefficients for the count part of the model. We interpret these coefficients as we would interpret coefficients from a standard negative binomial model: the expected number of alcohol-related problems changes by exp(Coef.) for each unit increase in the corresponding predictor. Here again, we could plot the interaction results to help make that interpretation.
+
+
+The results from the "Zero-inflation model" refer to the logistic model predicting whether or not a student is a certain zero. These are interpreted similar to logistic regression results: the expected log-odds that a student is a "certain zero" changes by Coef. for each unit increase in the corresponding predictor. 
+
+In our fitted model, the results from the zero inflated part of the output suggests that gender and the gender by time interaction are not statistically significant predictors of whether or not a student is a certain zero, and could be dropped from the zero inflation part of the model.
+
+```{r}
+glmer.8 = glmmTMB(rapi ~ 1 + time + male + time:male + (1 | id), data = rapi, 
+                  family = nbinom2, zi = ~ 1 + time)
+
+summary(glmer.8)
+```
+
+Substituting the appropriate 0/1 value for `male` and back-transforming the results of the count model:
+
+- The estimated average number of alcohol-related problems reported at the onset of the study for females is 4.66 ($e^{1.540}$), conditional on the random-effects.
+- For females, each month of the intervention is associated with a 1.8\% decrease in the number of alcohol-related problems reported, conditional on the random-effects.
+- Males report 19.3\% more problems than females at the onset of the study, conditional on the random-effects.
+- For males, each month of the intervention is associated with a decrease that is 1.3\% greater than that of females, conditional on the random-effects.
+
+Again, to help understand these interpretations, we can plot these results.
+
+```{r fig.width=8, fig.height=6, out.width='4in'}
+# Get y-hat values (use type="response")
+my_data$yhat4 = exp(1.540120 + -0.018113*my_data$time + 0.193247*my_data$male + 0.013822*my_data$time*my_data$male)
+
+# Plot the fitted growth patterns
+ggplot(data = my_data, aes(x = time, y = yhat4, color = gender)) +
+  geom_line() +
+  theme_bw() +
+  xlab("Time (in months)") +
+  ylab("Estimated Number of Alcohol-Related Problems") +
+  ggsci::scale_color_d3(name = "")
+```
+
+*Figure X.* Plot of the fitted longitudinal profiles for the count part of the zero-inflated negative binomial model.
+
+To interpret the zero inflated portion of the model, we will write out the fitted logistic model
+
+$$
+\ln\bigg[\frac{Pr(\textrm{Certain Zero})}{Pr(\textrm{Non Certain Zero})}\bigg] = -3.664 + 0.083(\mathrm{Time})
+$$
+
+We can interpret these in the log-odds scale:
+
+- At the study's onset, the log-odds of a student (regardless of gender) being a certain zero is $-3.664$, conditioned on the random-effects.
+- Each month, the predicted log-odds of a student (regardless of gender) being a certain zero increases by 0.083, on average, conditioned on the random-effects.
+
+We can also convert log-odds to odds by exponentiating the coefficients:
+
+- At the study's onset, the odds of a student (regardless of gender) being a certain zero is 0.026, conditioned on the random-effects.
+- Each month, the predicted odds of a student (regardless of gender) being a certain zero increases by 8.6\%, on average, conditioned on the random-effects.
+
+## References
+
+

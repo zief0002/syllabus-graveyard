@@ -1,0 +1,95 @@
+\documentclass[]{article} 
+
+
+\usepackage{amsmath}
+\usepackage{color}
+\usepackage{paralist}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{fancybox}
+\usepackage{fourier}
+
+\usepackage{graphicx}
+\usepackage{setspace}
+
+\usepackage{hyperref, url}
+
+
+
+\definecolor{umn}{rgb}{0.003921569, 0.486274510, 0.658823529}
+\hypersetup{colorlinks,breaklinks,
+            linkcolor=umn,urlcolor=umn,
+            anchorcolor=umn,citecolor=umn}
+            
+
+
+
+\title{LOGISTIC REGRESSION II} 
+\author{} 
+\date{} 
+
+\pagestyle{fancy}
+\lhead{
+\includegraphics[width=2cm]{/Users/andrewz/Pictures/UMN-Images/Goldy/goldyMoutU}}
+\chead{ \textbf{EPsy 8220---Methods for Categorical Response Data}\\
+Lab \#2~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\\
+15pts.~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+}
+\rhead{}
+\lfoot{}
+\cfoot{}
+\rfoot{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+\renewcommand{\headsep}{1.4cm}
+
+\fancyput(3.25in,-4.5in){%
+\setlength{\unitlength}{1in}\fancyoval(7,9.5)}
+
+
+\begin{document}
+
+
+\maketitle 
+\thispagestyle{fancy}
+
+\noindent In this assignment, you will continue to examine school district AYP data from the state of Minnesota by adding several other covariates to the model. Remember, your specific focus is \textit{examining the variability in AYP status for Minnesota schools and evaluating what predictors explain that variation.} 
+\\
+\linebreak
+\noindent \textbf{Assignment Guidelines:} Paralleling the analysis we have carried out in class, conduct the statistical analyses necessary to complete this assignment. Please submit a word-preocessed document that responds to each of the questions below. Any R output in the documentation file should be typeset and graphics should be resized so that they don't take up more room than necessary. \textit{All tables and figures should be publication quality (i.e., follow the APA guidelines).}
+
+
+
+\section*{Statistical Analyses}
+
+\noindent\textbf{Begin constructing a table that will display your regression results.}
+
+\begin{enumerate}[resume]
+\item In the questions below, you will fit a series of logistic regression models. In preparation for this upcoming work, prepare a summary table that you can use to present the results of your fitted regression models. Begin by adding the simple logistic model you fitted in Lab \#1. (When constructing this table, you might find it helpful to refer to example tables in the Handouts). There is no need to write anything about the table right now; save your space and time for later questions. You will be adding several other models to this table. There is no need to re-create this table each time \ldots just add to it. \textbf{(2pts)} 
+\end{enumerate}
+
+\pagebreak
+
+\noindent\textbf{Fit a series of logistic regression models that examine the effect of average teacher salary \textit{controlling statistically} for poverty and enrollment.}
+
+\begin{enumerate}[resume]
+\item Fit the two-predictor main-effects logistic regression models that include each of the control predictors on its own along with average teacher salary. Add the results to your regression summary table. \textbf{(2pts)}
+\item Is average teacher salary still associated with AYP status in these models? Explain. \textbf{(2pts)}
+\item What has changed and what has remained the same from the simple regression models to these new models? \textbf{(2pts)} 
+\item Fit a "final" main-effects model that includes all three predictors. Add this model to your table. \textbf{(2pts)} 
+\item Is average teacher salary still associated with AYP status in these models? Explain. \textbf{(2pts)}
+\end{enumerate}
+
+\vspace{\baselineskip}
+\noindent\textbf{Graphically display the results from your ``final'' model.}
+
+\begin{enumerate}[resume]
+\item Create a single display that you believe is the best visual representation of your ``final'' model. In constructing this display, think about the substantive points you want to make and create a graph that best allows you to highlight these conclusions. \textbf{(3pts)}
+\end{enumerate}
+
+
+
+
+
+\end{document}
+

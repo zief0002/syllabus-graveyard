@@ -1,0 +1,501 @@
+---
+title: "Matrix Formulation of LMER Models"
+date: "`r Sys.Date()`"
+header-includes:
+   - \usepackage{xcolor}
+   - \usepackage[framemethod=tikz]{mdframed}
+   - \usepackage{graphicx}
+   - \usepackage{rotating}
+   - \usepackage{booktabs}
+   - \usepackage{xfrac}
+   - \definecolor{umn}{RGB}{153, 0, 85}
+   - \definecolor{umn2}{rgb}{0.1843137, 0.4509804, 0.5372549}
+   - \definecolor{myorange}{HTML}{EA6153}
+output: 
+  pdf_document:
+    highlight: tango
+    latex_engine: xelatex
+    fig_width: 6
+    fig_height: 6
+mainfont: "Bembo Std"
+sansfont: "Helvetica Neue UltraLight"
+monofont: Inconsolata
+urlcolor: "umn2"
+always_allow_html: yes
+bibliography: epsy8282.bib
+csl: apa-single-spaced.csl
+nocite: | 
+  @Singer:2003, @Long:2012
+---
+
+## Linear Mixed-Effect Model: Linear Growth
+
+Consider two linear mixed-effects models. The first model is the model which includes a linear fixed-effect of time and a random-effect of intercept only. Writing out the equation for that model:
+
+$$
+Y_{ij} = \beta_{0} + \beta_1(t_{ij}) + b_{0i} + \epsilon_{ij}
+$$
+
+where $t_{ij}$ is the value of the time predictor for Subject $i$ at time point $j$. The second model includes a linear fixed-effect of time, again $t_{ij}$, and random-effects for both intercept and slope. We would write the equation for this model as:
+
+$$
+Y_{ij} = \beta_{0} + \beta_1(t_{ij}) + b_{0i} + b_{1i}(t_{ij}) + \epsilon_{ij}
+$$
+
+Let's also consider that we are fitting these models to a data set in which wach subject has four time points. The model-equation represnts a system of equations for each subject; one equation for each subject/time-point combination. Since our data set includes four time points for each subject, the model-equations represent a sytem of four equations for each subject. The system of equations for the first subject ($i=1$) for the first model are:
+
+$$
+\begin{split}
+Y_{1,1} &= \beta_{0} + \beta_1(t_{1,1}) + b_{0i} + \epsilon_{i1} \\
+Y_{1,2} &= \beta_{0} + \beta_1(t_{1,2}) + b_{0i} + \epsilon_{i2} \\
+Y_{1,3} &= \beta_{0} + \beta_1(t_{1,3}) + b_{0i} + \epsilon_{i3} \\
+Y_{1,4} &= \beta_{0} + \beta_1(t_{1,4}) + b_{0i} + \epsilon_{i4} \\
+\end{split}
+$$
+
+And, the system of equations for the first subject for the second model are:
+
+$$
+\begin{split}
+Y_{1,1} &= \beta_{0} + \beta_1(t_{1,1}) + b_{0i} + b_{1i}(t_{1,1}) + \epsilon_{i1} \\
+Y_{1,2} &= \beta_{0} + \beta_1(t_{1,2}) + b_{0i} + b_{1i}(t_{1,2}) + \epsilon_{i2} \\
+Y_{1,3} &= \beta_{0} + \beta_1(t_{1,3}) + b_{0i} + b_{1i}(t_{1,3}) + \epsilon_{i3} \\
+Y_{1,4} &= \beta_{0} + \beta_1(t_{1,4}) + b_{0i} + b_{1i}(t_{1,4}) + \epsilon_{i4} \\
+\end{split}
+$$
+
+These systems of equations would look identical for the other subjects, except that the $i$-value would change to acknowledge that we are writing these for a different subject. We can also express these same equations using matrices. Here is the system of equations for the first model written more generally for Subject $i$ using matrices:
+
+$$
+\begin{bmatrix} Y_{i1} \\ Y_{i2} \\ Y_{i3} \\ Y_{i4} \end{bmatrix} = 
+\begin{bmatrix} 1 & t_{i1} \\ 1 & t_{i2} \\ 1 & t_{i3} \\ 1 & t_{i4} \end{bmatrix} 
+\begin{bmatrix} \beta_0 \\ \beta_1 \end{bmatrix} + 
+\begin{bmatrix} 1 \\ 1  \\ 1  \\ 1 \end{bmatrix} 
+\begin{bmatrix} b_{0i} \end{bmatrix} + \begin{bmatrix} \epsilon_{i1} \\ \epsilon_{i2} \\ \epsilon_{i3} \\ \epsilon_{i4} \end{bmatrix}
+$$
+
+\newpage
+
+And for the second model:
+
+$$
+\begin{bmatrix} Y_{i1} \\ Y_{i2} \\ Y_{i3} \\ Y_{i4} \end{bmatrix} = 
+\begin{bmatrix} 1 & t_{i1} \\ 1 & t_{i2} \\ 1 & t_{i3} \\ 1 & t_{i4} \end{bmatrix} 
+\begin{bmatrix} \beta_0 \\ \beta_1 \end{bmatrix} + 
+\begin{bmatrix} 1 & t_{i1} \\ 1 & t_{i2} \\ 1 & t_{i3} \\ 1 & t_{i4} \end{bmatrix} 
+\begin{bmatrix} b_{0i} \\ b_{1i} \end{bmatrix} + \begin{bmatrix} \epsilon_{i1} \\ \epsilon_{i2} \\ \epsilon_{i3} \\ \epsilon_{i4} \end{bmatrix}
+$$
+
+Both of these matrix expressions have the same general form. A vector of the outcomes is the sum of two matrix products and a vector of level-1 errors. The first matrix product is the product of the design matrix for the fixed-effects post-multiplied by the vector of fixed-effects. The second matrix product is the product of the design matrix for the random-effects post-multiplied by the vector of random-effects. This is referred to as the *general form* for the linear mixed-effects model. We can express this general form using the bold matrix notation as,
+
+$$
+\mathbf{Y_{ij}} = \mathbf{X_{i}}\boldsymbol{\beta} + \mathbf{Z_{i}}\mathbf{b_i} + \boldsymbol{\epsilon_{ij}}
+$$
+
+In this equation,
+
+- $\mathbf{X_{i}}$ is the design matrix for the fixed-effects for the $i$th individual
+- $\mathbf{Z_{i}}$ is the design matrix for the random-effects for the $i$th individual
+- $\boldsymbol{\beta}$ is a vector of the fixed-effects
+- $\mathbf{b_i}$ is a vector of the random-effects for the $i$th individual, and
+- $\boldsymbol{\epsilon_{ij}}$ is a vector of the level-1 errors for the $i$th individual
+
+Note that the dimensions of each of these vectors and matrices depends on the model that was specified. 
+
+## Example: Vocabulary Data
+
+Consider again the vocabulary data that we used in previous notes. (The importing and preparation of these data is not shown.) Here we show the first two subjects' data.
+
+```{r setup, echo=FALSE, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(lme4)
+library(stringr)
+
+# Read in wide data
+vocab = read_csv(file = "~/Dropbox/epsy-8282/data/vocab.csv")
+
+# Convert to long data
+vocab_long = vocab %>% 
+  gather(time, score, t8:t11) %>%
+  mutate(
+    grade = as.integer(str_replace(time, pattern = "t", replacement = "")) - 8
+    ) %>%
+  select(id, grade, score, female) %>%
+  arrange(id, grade) 
+
+head(vocab_long, 8)
+```
+
+\newpage
+
+Here are the systems of equations for the first model (linear fixed-effect of time and intercept random-effect) shown for both subjects. Note that we use the data values for $Y_{ij}$ and $t_{ij}$:
+
+$$
+\begin{split}
+1.75 &= \beta_{0} + \beta_1(0) + b_{0,1} + \epsilon_{1,1} \\
+2.60 &= \beta_{0} + \beta_1(1) + b_{0,1} + \epsilon_{1,2} \\
+3.76 &= \beta_{0} + \beta_1(2) + b_{0,1} + \epsilon_{1,3} \\
+3.68 &= \beta_{0} + \beta_1(3) + b_{0,1} + \epsilon_{1,4} \\[1em]
+\hline
+0.90 &= \beta_{0} + \beta_1(0) + b_{0,2} + \epsilon_{2,1} \\
+2.47 &= \beta_{0} + \beta_1(1) + b_{0,2} + \epsilon_{2,2} \\
+2.44 &= \beta_{0} + \beta_1(2) + b_{0,2} + \epsilon_{2,3} \\
+3.43 &= \beta_{0} + \beta_1(3) + b_{0,2} + \epsilon_{2,4} \\
+\end{split}
+$$
+
+These equations would be written out for each subject. 
+
+Once we fit the model and get the estimates for the fixed-effects ($\beta_0$, $\beta_1$) and the random-effects ($b_{0}$ for Subject 1 and 2), we can obtain the predicted values; substitute these values into the equations, and drop the error term. Fitting this model:
+
+```{r}
+lmer.1 = lmer(score ~ 1 + grade + (1 | id), data = vocab_long, REML = FALSE)
+
+# Obtain fixed-effecta
+fixef(lmer.1)
+
+# Obtain random-effects (for first two subjects)
+head(ranef(lmer.1)$id)
+```
+
+
+$$
+\begin{split}
+\hat{\mathrm{Score}_{1,1}} &= 1.41 + 0.75(0) + 0.39 = 1.80\\
+\hat{\mathrm{Score}_{1,2}} &= 1.41 + 0.75(1) + 0.39 = 2.55\\
+\hat{\mathrm{Score}_{1,3}} &= 1.41 + 0.75(2) + 0.39 = 3.30\\
+\hat{\mathrm{Score}_{1,4}} &= 1.41 + 0.75(3) + 0.39 = 4.05\\[1em]
+\hline
+\hat{\mathrm{Score}_{2,1}} &= 1.41 + 0.75(0) + -0.21 = 1.20\\
+\hat{\mathrm{Score}_{2,2}} &= 1.41 + 0.75(1) + -0.21 = 1.95\\
+\hat{\mathrm{Score}_{2,3}} &= 1.41 + 0.75(2) + -0.21 = 2.70\\
+\hat{\mathrm{Score}_{2,4}} &= 1.41 + 0.75(3) + -0.21 = 3.45\\
+\end{split}
+$$
+
+\newpage
+
+These are the same values we get from the `predict()` function when we ask for random-effects to be included in the model.  (When the `newdata=` argument is not included the `predict()` function predicts for the data that was used to fit the model.) 
+
+```{r eval=FALSE}
+vocab_long %>%
+  mutate( yhat = predict(lmer.1) )
+```
+
+```{r echo=FALSE}
+vocab_long %>%
+  mutate( yhat = predict(lmer.1) ) %>%
+  filter(id == 1 | id == 2)
+```
+
+If we want the predicted values from the fixed-effects part of the model only, we drop the random-effects part of the predicted model:
+
+$$
+\begin{split}
+\hat{\mathrm{Score}_{1,1}} &= 1.41 + 0.75(0) = 1.41\\
+\hat{\mathrm{Score}_{1,2}} &= 1.41 + 0.75(1) = 2.16\\
+\hat{\mathrm{Score}_{1,3}} &= 1.41 + 0.75(2) = 2.91\\
+\hat{\mathrm{Score}_{1,4}} &= 1.41 + 0.75(3) = 3.66\\[1em]
+\hline
+\hat{\mathrm{Score}_{2,1}} &= 1.41 + 0.75(0) = 1.41\\
+\hat{\mathrm{Score}_{2,2}} &= 1.41 + 0.75(1) = 2.16\\
+\hat{\mathrm{Score}_{2,3}} &= 1.41 + 0.75(2) = 2.91\\
+\hat{\mathrm{Score}_{2,4}} &= 1.41 + 0.75(3) = 3.66\\
+\end{split}
+$$
+
+The predictions from the fixed-effects are the exact same for each individual (recall they represent the average model). These are the same values we get from the `predict()` function when we set the random-effects to `NA`.
+
+```{r eval=FALSE}
+vocab_long %>%
+  mutate( yhat = predict(lmer.1, re.form = NA) )
+```
+
+```{r echo=FALSE}
+vocab_long %>%
+  mutate( yhat = predict(lmer.1, re.form = NA) ) %>%
+  filter(id == 1 | id == 2)
+```
+
+## Using Matrix Algebra to Obtain the Predicted Values
+
+We can also use matrix algebra to obtain the predicted values. The general form for the predicted values is:
+
+$$
+\mathbf{\hat{Y}_{ij}} = \mathbf{X_i}\boldsymbol{\hat\beta} + \mathbf{Z_i}\mathbf{\hat{b}_i}
+$$
+
+To do this we need (1) the design matrix for the fixed-effects, (2) the design mtrix for the random-effects, (3) a column vector of the estimated fixed-effects, and (4) a column vector of the estimated random-effects. Below, we input the design matrices for the first subject and the two column vectors based on the first subject:
+
+```{r}
+# Design matrix of the fixed-effects
+X = matrix(data = c(1, 1, 1, 1, 0, 1, 2, 3), ncol = 2)
+X
+
+# Design matrix of the random-effects
+Z = matrix(data = c(1, 1, 1, 1), ncol = 1)
+Z
+
+# Column vector of the estimated fixed-effects
+B = matrix(data = c(1.41, 0.75), ncol = 1)
+B
+
+# Column vector of the estimated random-effects
+b = matrix(data = c(0.39), ncol = 1)
+b
+```
+
+Then the matrix algebra to get the predicted values would be
+
+```{r}
+X %*% B + Z %*% b
+```
+
+To do this for the second subject, we would simply use the design matrices and estimated effects associated with that subject. We could also compute the predicted values from the fixed-effects part of the model by simply dropping the random-effects portion (the second product). In practice, one would likely just use the `predict()` function. However, it helps us understand how that function actually computes the predicted values.
+
+
+## Modeled Variance--Covariance Matrix of the Repeated Measures
+
+The mixed-effects model will try to model the variance--covariance matrix of the repeated measures. The actual variance--covariance matrix of the repeated measures is
+
+```{r}
+Y = vocab %>%
+  select(t8:t11) %>%
+  cov(.)
+
+Y
+```
+
+
+We call the variance--covariance matrix for a single subject $\mathbf{V_i}$. This is a $n_i \times n_i$ matrix where $n_i$ is the number of repeated measures for Subject $i$. We will consider the second model (linear fixed-effects of time and RE for both intercept and slope) in this section. 
+
+```{r}
+lmer.2 = lmer(score ~ 1 + grade + (1 + grade | id), data = vocab_long, REML = FALSE)
+```
+
+For the data set we have been considering, there were four time points, so $V_i$ is a $4\times4$ matrix,
+
+$$
+\mathbf{V_i} = \begin{bmatrix} 
+\mathrm{Var}\big(Y_{i1}\big) & \mathrm{Cov}\big(Y_{i1},Y_{i2}\big) & \mathrm{Cov}\big(Y_{i1},Y_{i3} & \mathrm{Cov}\big(Y_{i1},Y_{i4}\big)\big) \\ 
+\mathrm{Cov}\big(Y_{i2},Y_{i1}\big) & \mathrm{Var}\big(Y_{i2}\big) & \mathrm{Cov}\big(Y_{i2},Y_{i3}\big) & \mathrm{Cov}\big(Y_{i2},Y_{i4}\big) \\ 
+\mathrm{Cov}\big(Y_{i3},Y_{i1}\big) & \mathrm{Cov}\big(Y_{i3},Y_{i2}\big) & \mathrm{Var}\big(Y_{i3}\big) & \mathrm{Cov}\big(Y_{i3},Y_{i4}\big) \\ 
+\mathrm{Cov}\big(Y_{i4},Y_{i1}\big) & \mathrm{Cov}\big(Y_{i4},Y_{i2}\big) & \mathrm{Cov}\big(Y_{i4},Y_{i3}\big) & \mathrm{Var}\big(Y_{i4}\big)
+\end{bmatrix}
+$$
+
+This is a symmetric matrix that indexes the variation at each time point (variances) and the dependency between time points (covariances). We can decompose this matrix into two sources: between-subjects variation ($\mathbf{B_i}$) and within-subjects variation ($\mathbf{W_i}$). Then
+
+$$
+\mathbf{V_i} = \mathbf{B_i} + \mathbf{W_i}
+$$
+
+### Within-Subjects Variance--Covariance Matrix
+
+The within-subjects matrix, $\mathbf{W_i}$, can be expressed as
+
+$$
+\mathbf{W_i} = \sigma^2_{\epsilon}\mathbf{I_i}
+$$
+
+where $\sigma^2_{\epsilon}$ is the variance of the level-1 errors, and $\mathbf{I_i}$ is a $n_i \times n_i$ identity matrix. For our student with four time points,
+
+$$
+\begin{split}
+\mathbf{W_i} &= \sigma^2_{\epsilon}\mathbf{I_i} \\
+&=  \sigma^2_{\epsilon} \begin{bmatrix} 
+1 & 0 & 0 & 0 \\
+0 & 1 & 0 & 0 \\
+0 & 0 & 1 & 0 \\
+0 & 0 & 0 & 1
+\end{bmatrix} = \begin{bmatrix} 
+\sigma^2_{\epsilon} & 0 & 0 & 0 \\
+0 & \sigma^2_{\epsilon} & 0 & 0 \\
+0 & 0 & \sigma^2_{\epsilon} & 0 \\
+0 & 0 & 0 & \sigma^2_{\epsilon}
+\end{bmatrix}
+\end{split}
+$$
+
+This matrix emphasizes the assumptions about the level-1 errors. Namely that they are independent with constant variance. 
+
+### Between-Subjects Variance--Covariance Matrix
+
+The between-subjects matrix, $\mathbf{B_i}$, can be expressed as
+
+$$
+\mathbf{B_i} = \mathbf{Z_i}\mathbf{G}\mathbf{Z}^{\intercal}_i
+$$
+
+where $\mathbf{Z_i}$ is the design matrix of the random-effects (and $\mathbf{Z}^{\intercal}_i$ is the transpose of this matrix) and $\mathbf{G}$ is the variance--covariance matrix of the random-effects defined as,
+
+$$
+\mathbf{G} = \begin{bmatrix} 
+\mathrm{Var}\big(b_0\big) & \mathrm{Cov}\big(b_0,b_1\big) \\
+\mathrm{Cov}\big(b_1,b_0\big) & \mathrm{Var}\big(b_1\big)
+\end{bmatrix}
+$$
+
+Substituting the between- and within-subjects matrices back into the variance--covariance formulation of the repeated measures, we get
+
+$$
+\begin{split}
+\mathbf{V_i} &= \mathbf{B_i} + \mathbf{W_i} \\
+&= \mathbf{Z_i}\mathbf{G}\mathbf{Z}^{\intercal}_i + \sigma^2_{\epsilon}\mathbf{I_i} 
+\end{split}
+$$
+
+Substituting in the matrices for the model that includes a random-effect of intercept and slope,
+
+$$
+\begin{split}
+\mathbf{V_i} &= \mathbf{Z_i}\mathbf{G}\mathbf{Z}^{\intercal}_i + \sigma^2_{\epsilon}\mathbf{I_i}\\[1em]
+&= \begin{bmatrix} 1 & X_{i1} \\ 1 & X_{i2} \\ 1 & X_{i3} \\ 1 & X_{i4} \end{bmatrix} \begin{bmatrix} \sigma^2_0 & \sigma_{01} \\ \sigma_{10} & \sigma^2_1\end{bmatrix} \begin{bmatrix} 1 & 1 & 1 & 1 \\ X_{i1} & X_{i2} & X_{i3} & X_{i4} \end{bmatrix} + \begin{bmatrix} 
+\sigma^2_{\epsilon} & 0 & 0 & 0 \\
+0 & \sigma^2_{\epsilon} & 0 & 0 \\
+0 & 0 & \sigma^2_{\epsilon} & 0 \\
+0 & 0 & 0 & \sigma^2_{\epsilon}
+\end{bmatrix}
+\end{split}
+$$
+
+and carrying out the matrix algebra we find each variance (element on the diagonal) has a similar mathematical form. The variance for time point 1 is:
+
+$$
+\mathrm{Var}(Y_{i1}) = \sigma^2_0 + 2(X_{i1})(\sigma_{01}) + X^2_{i1}(\sigma^2_1) + \sigma^2_{\epsilon}
+$$
+
+This implies that the variance at each time point is a function of the time predictor and the squared time predictor, the variances and covariances of the random-effects and the level-1 error variance.
+
+
+The covariance at each time point also all have the same mathematical function. For example the covariance between time point 1 and time point 2 is
+
+$$
+\mathrm{Cov}(Y_{i1},Y_{i2}) = \sigma^2_0 + X_{i1}(\sigma_{01}) + X_{i2}(\sigma_{10}) + \sigma^2_1(X_{i1})(X_{i2})
+$$
+
+This implies that the covariance between time points is a function of the time predictor, the variances and covariances of the random-effects. Let's see this in action for our data set. We will need (1) the estimate of the variance for the level-1 errors ($\hat\sigma^2_{\epsilon}$), (2) the design matrix for the random effects ($\mathbf{Z_i}$); and (3) the variance--covariance matrix of the random-effects ($\mathbf{G}$).
+
+```{r}
+# Obtain variance estimate for the level-1 error
+summary(lmer.2)$sigma ^ 2
+
+# Obtain variance-covariance matrix of the random-effects
+VarCorr(lmer.2)$id[1:2, 1:2]
+```
+
+The design matrix for the random-effects is
+
+$$
+\mathbf{Z_i} = \begin{bmatrix} 1 & 0 \\ 1 & 1 \\ 1 & 2 \\ 1 & 3 \end{bmatrix} 
+$$
+
+So the estimated within-subjects variance--covariance matrix is
+
+$$
+\begin{split}
+\hat{\mathbf{W_i}} &= \hat{\sigma}^2_{\epsilon} \mathbf{I_i} \\[1em]
+&= 0.896 \begin{bmatrix} 
+1 & 0 & 0 & 0 \\
+0 & 1 & 0 & 0 \\
+0 & 0 & 1 & 0 \\
+0 & 0 & 0 & 1
+\end{bmatrix} = \begin{bmatrix} 
+0.896 & 0 & 0 & 0 \\
+0 & 0.896 & 0 & 0 \\
+0 & 0 & 0.896 & 0 \\
+0 & 0 & 0 & 0.896
+\end{bmatrix}
+\end{split}
+$$
+
+```{r}
+# Error variance
+sigma2error = 0.89633196
+
+# Compute estimated within-subjects variance-covariance matrix
+W = sigma2error * diag(4)
+W
+```
+
+
+The estimated between-subjects variance--covariance matrix is
+
+$$
+\begin{split}
+\hat{\mathbf{B_i}} &= \mathbf{Z_i}\hat{\mathbf{G}}\mathbf{Z}^{\intercal}_i \\[1em]
+&= \begin{bmatrix} 1 & 0 \\ 1 & 1 \\ 1 & 2 \\ 1 & 3 \end{bmatrix} \begin{bmatrix} 3.138 & 0.0154 \\ 0.0154 & 0.00008 \end{bmatrix} \begin{bmatrix} 1 & 1 & 1 & 1 \\ 0 & 1 & 2 & 3 \end{bmatrix}
+\end{split}
+$$
+
+```{r}
+# Enter design matrix for random-effects
+Z = matrix(data = c(1, 1, 1, 1, 0, 1, 2, 3), ncol = 2)
+Z
+
+# Enter variance-covariance matrix for the random-effects
+G = matrix(data = c(3.13762586, 0.01535409, 0.01535409, 0.00007513581) , ncol = 2)
+G
+
+# Compute the estiated between-subjects variance-covariance matrix
+B = Z %*% G %*% t(Z)
+B
+```
+
+The model-based estimate for the variance--covariance matrix of the repeated measures is then
+
+```{r}
+V = B + W
+V
+```
+
+This matrix is the model-based estimate for the actual variances and covariances among the repeated measures in the data. Note that the dependency in the data (the non-zero covariances) are a function of the between-subjects variance--covariance matrix. (In the within-subjects variance--covariance matrix, the off-diagonal elements are all zero.) In the between-subjects variance--covariance matrix, it is the inclusion of the random-effects that allows us to model the non-zero covariances (dependency) between the repeated measures. This is why we include a random-effect(s) to appropriately model data that are non-independent.
+
+## Standardizing the Modeled Variance--Covariance Matrix of the Repeated Measures
+
+To further understand the dependency among the repeated measures, it is helpful to convert the modeled variance--covariance matrix of the repeated measures into a correlation matrix. To do this, we convert using,
+
+$$
+\mathbf{V^{*}_i} = \mathbf{D_i}\mathbf{V_i}\mathbf{D_i}
+$$
+
+where $\mathbf{D_i}$ is a $n_i \times n_i$ diagonal matrix with elements equal to
+
+$$
+\frac{1}{\sqrt{\mathrm{Var}(Y_{ij})}}
+$$
+
+For our example with four time points,
+
+$$
+\mathbf{D_i} = \begin{bmatrix} 
+\frac{1}{\sqrt{\mathrm{Var}(Y_{i1})}} & 0 & 0 & 0 \\
+0 & \frac{1}{\sqrt{\mathrm{Var}(Y_{i2})}} & 0 & 0 \\
+0 & 0 & \frac{1}{\sqrt{\mathrm{Var}(Y_{i3})}}& 0 \\
+0 & 0 & 0 & \frac{1}{\sqrt{\mathrm{Var}(Y_{i4})}}
+\end{bmatrix}
+$$
+
+In our specific example,
+
+```{r}
+# Create the diagonal matrix based on the variances
+D = diag( 1/sqrt(diag(V)) )
+D
+
+# Compute the standardized V_i
+D %*% V %*% D
+```
+
+These are the model-based estimated correlations between the repeated measures. This shows a pattern of correlation similar to what is in the actual data.
+
+```{r}
+cov2cor(Y)
+```
+
+The correlations (variances/covariances) are not perfectly reproduced. The model-based correlations seem a little lower than the correlations in the data. Remember, we are modeling these correlations. We don't expect perfect replication of the data from a model. One question we can ask is whether the model-based correlations are lower because the level-1 errors are not independent. If that were the case, the off-diagonal elements of $\mathbf{W_i}$ would not be zero and the model-estimated correlations would, in turn, be higher. To determine if this is the case, or if the differences are just due to chance, we need to evaluate the model's assumptions.
+
+
+## References
+
+

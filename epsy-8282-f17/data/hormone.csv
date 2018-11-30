@@ -1,0 +1,37 @@
+id,condition,t1,t2,t3,t4
+1,Placebo,11,12,15,18
+2,Placebo,7,8,7,9
+3,Placebo,8,9,10,13
+4,Placebo,10,8,12,12
+5,Placebo,10,8,9,11
+6,Placebo,7,5,6,7
+7,Placebo,7,8,9,11
+8,Placebo,13,11,14,17
+9,Placebo,2,4,3,5
+10,Placebo,8,9,10,10
+11,Placebo,9,8,11,11
+12,Placebo,5,5,7,10
+13,Placebo,8,6,9,8
+14,Placebo,10,8,11,14
+15,Placebo,5,5,7,9
+16,Placebo,4,6,4,7
+17,Placebo,5,6,7,6
+18,Hormone Therapy,4,3,0,6
+19,Hormone Therapy,7,7,10,7
+20,Hormone Therapy,2,5,6,5
+21,Hormone Therapy,8,10,9,12
+22,Hormone Therapy,5,6,4,6
+23,Hormone Therapy,2,2,2,3
+24,Hormone Therapy,10,13,9,12
+25,Hormone Therapy,12,14,11,15
+26,Hormone Therapy,1,3,8,4
+27,Hormone Therapy,3,5,1,0
+28,Hormone Therapy,1,5,1,4
+29,Hormone Therapy,13,13,10,14
+30,Hormone Therapy,5,3,6,6
+31,Hormone Therapy,6,7,8,6
+32,Hormone Therapy,1,1,1,2
+33,Hormone Therapy,8,10,8,8
+34,Hormone Therapy,7,6,6,7
+35,Hormone Therapy,3,4,2,5
+36,Hormone Therapy,7,8,6,8

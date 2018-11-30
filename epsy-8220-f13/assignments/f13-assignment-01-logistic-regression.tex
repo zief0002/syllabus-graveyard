@@ -1,0 +1,122 @@
+\documentclass[]{article} 
+
+
+\usepackage{amsmath}
+\usepackage{color}
+\usepackage{paralist}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{fancybox}
+\usepackage{fourier}
+
+\usepackage{graphicx}
+\usepackage{setspace}
+
+\usepackage{hyperref, url}
+
+
+
+\definecolor{umn}{rgb}{0.003921569, 0.486274510, 0.658823529}
+\hypersetup{colorlinks,breaklinks,
+            linkcolor=umn,urlcolor=umn,
+            anchorcolor=umn,citecolor=umn}
+            
+
+
+
+\title{LOGISTIC REGRESSION} 
+\author{} 
+\date{} 
+
+\pagestyle{fancy}
+\lhead{
+\includegraphics[width=2cm]{/Users/andrewz/Pictures/UMN-Images/Goldy/goldyMoutU}}
+\chead{ \textbf{EPsy 8220---Methods for Categorical Response Data}\\
+Lab \#1~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\\
+17pts.~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+}
+\rhead{}
+\lfoot{}
+\cfoot{}
+\rfoot{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+\renewcommand{\headsep}{1.4cm}
+
+\fancyput(3.25in,-4.5in){%
+\setlength{\unitlength}{1in}\fancyoval(7,9.5)}
+
+
+\begin{document}
+
+
+\maketitle 
+\thispagestyle{fancy}
+
+\noindent Adequate yearly progress (AYP) is the measure by which schools, districts, and states are held accountable for student performance under Title I of the \href{http://www2.ed.gov/nclb/landing.jhtml}{No Child Left Behind Act of 2001} (NCLB) Under NCLB, states are required to show that public school students are making yearly progess toward meeting state academic content standards. The goal is to have all students reaching proficient levels in reading and math by 2014 as measured by performance on state tests. 
+\\
+\linebreak
+To comply with NCLB, public school students in Minnesota take the \href{http://education.state.mn.us/mde/justparent/testreq/index.html}{Minnesota Comprehensive Assessments} (MCA) in reading and mathematics each year from grade 3 to grade 8. The MCA in reading is administered again in grade 10 and the mathematics assessment is readministered in grade 11. Additionally, MCAs in science (grades 5, 8, and 10) and in writing (grade 9) are also taken. The results of the MCA's are then compared to prior years, and, based on the state-determined AYP standards, used to determine if the school or district has made \href{http://en.wikipedia.org/wiki/Adequate_Yearly_Progress}{adequate progress} towards the proficiency goal.
+\\
+\linebreak
+AYP for a school or district is calculated for several student sub-groups and consists of four areas: \begin{inparaenum}[(1)] \item Participation on MCA's); \item Proficiency on MCA's; \item Attendance; and \item Graduation rate.\end{inparaenum} If a school or district does not meet the established performance criteria, then either the school building or school district is identified as ``needing improvement.''
+\\
+\linebreak
+If a school or district fails to make AYP for two consecutive years, they are placed in the \href{http://en.wikipedia.org/wiki/Adequate_Yearly_Progress#Unsuccessful_progress}{`Choice' School Improvement Status}. NCLB specifies a number of consequences for those schools receiving Title I funds, including notifying parents of that the school is in need of improvement, providing students an option to transfer to another public school within the district, providing tutoring, to students or even restructuring the school.
+\\
+\linebreak
+In this assignment, you will have an opportunity to examine school district data from the state of Minnesota. \textit{Your specific focus is examining the variability in AYP status for Minnesota schools and evaluating what predictors explain that variation.}
+
+\pagebreak
+
+\noindent \textbf{Assignment Guidelines:} Paralleling the analysis we have carried out in class, conduct the statistical analyses necessary to complete this assignment. Please submit a word-preocessed document that responds to each of the questions below. Any R output in the documentation file should be typeset and graphics should be resized so that they don't take up more room than necessary. \textit{All tables and figures should be publication quality (i.e., follow the APA guidelines).}
+
+
+
+\section*{Statistical Analyses}
+
+\noindent\textbf{Summarize the sample data.}
+
+\begin{enumerate}
+\item Create a publication quality table that summarizes the distribution of AYP status conditioned on average teacher salary. Categorize average teacher salary by trichotomizing it so that there are roughly equal numbers of schools in each category. \textbf{(3pts)}\\
+\end{enumerate}  
+
+\vspace{\baselineskip}
+ 
+\noindent\textbf{Examine the correlation matrix among variables.}
+ 
+\begin{enumerate}[resume]
+\item Construct a publication quality table that presents the estimated correlations among 2012 AYP status, average teacher salary, poverty, and enrollment. \textbf{(2pts)}
+\item Describe what we learn from the table of correlations.  \textbf{(2pts)}
+\item Explain what these results foreshadow for multiple regression models predicting 2012 AYP status. \textbf{(1pt)} \\
+\end{enumerate}
+
+\vspace{\baselineskip}
+
+\noindent\textbf{Regress 2012 AYP status on average teacher salary.}
+
+\begin{enumerate}[resume]
+\item Present the fitted regression equation. \textbf{(1pt)}
+\item Interpret the $\beta_0$ estimate using the substantive context. \textbf{(1pt)}
+\item Interpret the $\beta_1$ estimate using the substantive context. \textbf{(1pt)}
+\end{enumerate}
+
+\pagebreak
+
+\noindent\textbf{Report the Regression Results}
+
+\begin{enumerate}[resume]
+\item Write some text for a results section of an empirical article in which you report the results of the model you fitted. Be sure to report all pertinent information required by APA. \textbf{(3pts)} 
+\end{enumerate}
+
+\vspace{\baselineskip}
+\noindent\textbf{Graphically display the results from your model.}
+
+\begin{enumerate}[resume]
+\item Create a display that visually represents your fitted model. Be sure to viually show the uncertainty in the model on your plot. \textbf{(2pts)}
+\item Write 1--2 sentences that could be added to the text of an empirical article in which you interpret the plot. \textbf{(1pt)}
+\end{enumerate}
+
+
+\end{document}
+

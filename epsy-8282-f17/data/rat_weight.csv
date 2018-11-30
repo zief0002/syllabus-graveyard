@@ -1,0 +1,601 @@
+rat,week,weight,regimen
+1,0,311.4,Control
+1,1,270.6,Control
+1,2,289.9,Control
+1,4,317.1,Control
+1,8,289.1,Control
+1,12,343.3,Control
+2,0,276.7,Control
+2,1,239.6,Control
+2,2,261.5,Control
+2,4,293.9,Control
+2,8,302.2,Control
+2,12,323,Control
+3,0,271.7,Control
+3,1,259.9,Control
+3,2,279.8,Control
+3,4,284.9,Control
+3,8,291.7,Control
+3,12,346.4,Control
+4,0,255.6,Control
+4,1,275.3,Control
+4,2,313.2,Control
+4,4,306.9,Control
+4,8,334,Control
+4,12,337.4,Control
+5,0,251,Control
+5,1,257,Control
+5,2,265.1,Control
+5,4,255.9,Control
+5,8,302,Control
+5,12,308.9,Control
+6,0,255.1,Control
+6,1,256.3,Control
+6,2,281.3,Control
+6,4,291.5,Control
+6,8,319,Control
+6,12,343.7,Control
+7,0,298.4,Control
+7,1,270.5,Control
+7,2,305.7,Control
+7,4,297,Control
+7,8,344,Control
+7,12,341.1,Control
+8,0,249.7,Control
+8,1,251.4,Control
+8,2,288.8,Control
+8,4,271.2,Control
+8,8,290.8,Control
+8,12,311.9,Control
+9,0,318.8,Control
+9,1,263.9,Control
+9,2,309.5,Control
+9,4,313.4,Control
+9,8,346.5,Control
+9,12,382.4,Control
+10,0,259.9,Control
+10,1,288.3,Control
+10,2,287.2,Control
+10,4,303.8,Control
+10,8,318.6,Control
+10,12,342.2,Control
+11,0,263.7,Control
+11,1,262.6,Control
+11,2,284.8,Control
+11,4,295.5,Control
+11,8,319.1,Control
+11,12,401.3,Control
+12,0,290.2,Control
+12,1,285.2,Control
+12,2,285.7,Control
+12,4,304.9,Control
+12,8,296.4,Control
+12,12,341.7,Control
+13,0,205.5,Control
+13,1,226.6,Control
+13,2,232.7,Control
+13,4,261.7,Control
+13,8,270,Control
+13,12,329.5,Control
+14,0,290.9,Control
+14,1,299.2,Control
+14,2,331,Control
+14,4,307.8,Control
+14,8,334.5,Control
+14,12,381.6,Control
+15,0,279,Control
+15,1,289.2,Control
+15,2,302.5,Control
+15,4,335.3,Control
+15,8,355.1,Control
+15,12,372,Control
+16,0,233,Control
+16,1,250.7,Control
+16,2,237.8,Control
+16,4,251,Control
+16,8,273.4,Control
+16,12,296.4,Control
+17,0,248.8,Control
+17,1,228.9,Control
+17,2,242.9,Control
+17,4,259.8,Control
+17,8,280.4,Control
+17,12,329.2,Control
+18,0,248.1,Control
+18,1,282.9,Control
+18,2,261.6,Control
+18,4,267.7,Control
+18,8,300.9,Control
+18,12,345,Control
+19,0,231.4,Control
+19,1,227.6,Control
+19,2,261.4,Control
+19,4,251.4,Control
+19,8,327.3,Control
+19,12,309.1,Control
+20,0,228.5,Control
+20,1,243.2,Control
+20,2,222.4,Control
+20,4,252.2,Control
+20,8,309.4,Control
+20,12,311.6,Control
+21,0,260.6,Control
+21,1,245.5,Control
+21,2,263.6,Control
+21,4,288.2,Control
+21,8,286.7,Control
+21,12,346.3,Control
+22,0,259.7,Control
+22,1,264.3,Control
+22,2,318.1,Control
+22,4,257.9,Control
+22,8,303.1,Control
+22,12,322.7,Control
+23,0,240.5,Control
+23,1,256.9,Control
+23,2,269.4,Control
+23,4,307,Control
+23,8,309.2,Control
+23,12,348.3,Control
+24,0,267.9,Control
+24,1,283.6,Control
+24,2,308.9,Control
+24,4,316.4,Control
+24,8,320.4,Control
+24,12,375.6,Control
+25,0,252.1,Control
+25,1,281.5,Control
+25,2,280.6,Control
+25,4,284.8,Control
+25,8,304.2,Control
+25,12,343.5,Control
+26,0,238.9,Diet only
+26,1,268.7,Diet only
+26,2,279.2,Diet only
+26,4,302.1,Diet only
+26,8,254.1,Diet only
+26,12,296,Diet only
+27,0,266,Diet only
+27,1,290.6,Diet only
+27,2,286.8,Diet only
+27,4,296.5,Diet only
+27,8,322.1,Diet only
+27,12,347,Diet only
+28,0,239.2,Diet only
+28,1,250,Diet only
+28,2,253.6,Diet only
+28,4,269.1,Diet only
+28,8,285.4,Diet only
+28,12,306.9,Diet only
+29,0,206.8,Diet only
+29,1,204.7,Diet only
+29,2,218.5,Diet only
+29,4,216.8,Diet only
+29,8,273.3,Diet only
+29,12,255.9,Diet only
+30,0,272.5,Diet only
+30,1,273.9,Diet only
+30,2,299.3,Diet only
+30,4,309.5,Diet only
+30,8,309.3,Diet only
+30,12,349.9,Diet only
+31,0,270.7,Diet only
+31,1,293.7,Diet only
+31,2,303.8,Diet only
+31,4,313.4,Diet only
+31,8,319.7,Diet only
+31,12,379.7,Diet only
+32,0,283.1,Diet only
+32,1,298.9,Diet only
+32,2,296.4,Diet only
+32,4,302,Diet only
+32,8,348.6,Diet only
+32,12,372.7,Diet only
+33,0,304,Diet only
+33,1,251.2,Diet only
+33,2,287.4,Diet only
+33,4,304.2,Diet only
+33,8,314.3,Diet only
+33,12,300.3,Diet only
+34,0,251.9,Diet only
+34,1,292.4,Diet only
+34,2,295.6,Diet only
+34,4,267.1,Diet only
+34,8,296.6,Diet only
+34,12,298.7,Diet only
+35,0,252.1,Diet only
+35,1,237.5,Diet only
+35,2,259.7,Diet only
+35,4,262.5,Diet only
+35,8,288.1,Diet only
+35,12,315.5,Diet only
+36,0,267.6,Diet only
+36,1,270.3,Diet only
+36,2,255.1,Diet only
+36,4,273.6,Diet only
+36,8,297.7,Diet only
+36,12,324.5,Diet only
+37,0,301.6,Diet only
+37,1,291.7,Diet only
+37,2,287.7,Diet only
+37,4,305.6,Diet only
+37,8,338.4,Diet only
+37,12,377.7,Diet only
+38,0,236.1,Diet only
+38,1,241.8,Diet only
+38,2,266.5,Diet only
+38,4,282.8,Diet only
+38,8,288.8,Diet only
+38,12,308.7,Diet only
+39,0,211.4,Diet only
+39,1,225.8,Diet only
+39,2,240.5,Diet only
+39,4,261.1,Diet only
+39,8,259.5,Diet only
+39,12,295.7,Diet only
+40,0,283.6,Diet only
+40,1,300.6,Diet only
+40,2,305.1,Diet only
+40,4,297.7,Diet only
+40,8,319.1,Diet only
+40,12,346.1,Diet only
+41,0,320.5,Diet only
+41,1,301.5,Diet only
+41,2,285.1,Diet only
+41,4,308,Diet only
+41,8,339,Diet only
+41,12,335.4,Diet only
+42,0,308.1,Diet only
+42,1,286.3,Diet only
+42,2,282,Diet only
+42,4,318.8,Diet only
+42,8,348.6,Diet only
+42,12,338,Diet only
+43,0,287.5,Diet only
+43,1,278.2,Diet only
+43,2,281.6,Diet only
+43,4,275.1,Diet only
+43,8,330.5,Diet only
+43,12,318.7,Diet only
+44,0,274.9,Diet only
+44,1,287.8,Diet only
+44,2,278.6,Diet only
+44,4,291.6,Diet only
+44,8,328.8,Diet only
+44,12,324,Diet only
+45,0,238.7,Diet only
+45,1,273.9,Diet only
+45,2,263.6,Diet only
+45,4,271.2,Diet only
+45,8,299,Diet only
+45,12,316.2,Diet only
+46,0,219.4,Diet only
+46,1,206.8,Diet only
+46,2,216.9,Diet only
+46,4,239.1,Diet only
+46,8,271.4,Diet only
+46,12,249.7,Diet only
+47,0,240.9,Diet only
+47,1,233.9,Diet only
+47,2,274.7,Diet only
+47,4,287.1,Diet only
+47,8,288.8,Diet only
+47,12,334.9,Diet only
+48,0,297.8,Diet only
+48,1,315.1,Diet only
+48,2,277.1,Diet only
+48,4,313,Diet only
+48,8,337.1,Diet only
+48,12,362,Diet only
+49,0,230.3,Diet only
+49,1,218.5,Diet only
+49,2,212,Diet only
+49,4,254.3,Diet only
+49,8,281.8,Diet only
+49,12,316,Diet only
+50,0,229.9,Diet only
+50,1,217.6,Diet only
+50,2,212.4,Diet only
+50,4,244.8,Diet only
+50,8,248.1,Diet only
+50,12,276.8,Diet only
+51,0,238.7,Exercise only
+51,1,250.9,Exercise only
+51,2,262.9,Exercise only
+51,4,253.2,Exercise only
+51,8,273.8,Exercise only
+51,12,321.5,Exercise only
+52,0,305.3,Exercise only
+52,1,292.5,Exercise only
+52,2,296.1,Exercise only
+52,4,287.1,Exercise only
+52,8,314,Exercise only
+52,12,357.4,Exercise only
+53,0,296.2,Exercise only
+53,1,311.6,Exercise only
+53,2,319.7,Exercise only
+53,4,349.8,Exercise only
+53,8,362,Exercise only
+53,12,364.3,Exercise only
+54,0,247.5,Exercise only
+54,1,226.4,Exercise only
+54,2,240.3,Exercise only
+54,4,237,Exercise only
+54,8,241.2,Exercise only
+54,12,247.1,Exercise only
+55,0,202.3,Exercise only
+55,1,227.9,Exercise only
+55,2,251.5,Exercise only
+55,4,205.7,Exercise only
+55,8,272.6,Exercise only
+55,12,285.3,Exercise only
+56,0,224.8,Exercise only
+56,1,238.2,Exercise only
+56,2,259.3,Exercise only
+56,4,249.5,Exercise only
+56,8,258.4,Exercise only
+56,12,279.9,Exercise only
+57,0,270.8,Exercise only
+57,1,254.7,Exercise only
+57,2,283.3,Exercise only
+57,4,260.2,Exercise only
+57,8,292,Exercise only
+57,12,294.9,Exercise only
+58,0,234.5,Exercise only
+58,1,273.4,Exercise only
+58,2,258,Exercise only
+58,4,284.6,Exercise only
+58,8,280.6,Exercise only
+58,12,323.5,Exercise only
+59,0,299.6,Exercise only
+59,1,310.7,Exercise only
+59,2,290.3,Exercise only
+59,4,294.4,Exercise only
+59,8,298.1,Exercise only
+59,12,337.2,Exercise only
+60,0,255.6,Exercise only
+60,1,269.5,Exercise only
+60,2,280.9,Exercise only
+60,4,303.5,Exercise only
+60,8,307.6,Exercise only
+60,12,343.8,Exercise only
+61,0,251.3,Exercise only
+61,1,236.3,Exercise only
+61,2,242.4,Exercise only
+61,4,292.5,Exercise only
+61,8,257.8,Exercise only
+61,12,270.8,Exercise only
+62,0,272.3,Exercise only
+62,1,298.7,Exercise only
+62,2,272,Exercise only
+62,4,269.1,Exercise only
+62,8,303.8,Exercise only
+62,12,342.9,Exercise only
+63,0,320.7,Exercise only
+63,1,296.1,Exercise only
+63,2,275.9,Exercise only
+63,4,304,Exercise only
+63,8,290.9,Exercise only
+63,12,333.5,Exercise only
+64,0,228.1,Exercise only
+64,1,226.4,Exercise only
+64,2,250.3,Exercise only
+64,4,265.2,Exercise only
+64,8,272.1,Exercise only
+64,12,289,Exercise only
+65,0,248.3,Exercise only
+65,1,258.3,Exercise only
+65,2,240.5,Exercise only
+65,4,267.1,Exercise only
+65,8,257.6,Exercise only
+65,12,300.9,Exercise only
+66,0,247.2,Exercise only
+66,1,270.1,Exercise only
+66,2,255.5,Exercise only
+66,4,288.4,Exercise only
+66,8,297.9,Exercise only
+66,12,318.8,Exercise only
+67,0,241.6,Exercise only
+67,1,291,Exercise only
+67,2,302,Exercise only
+67,4,290.3,Exercise only
+67,8,299.8,Exercise only
+67,12,352.8,Exercise only
+68,0,259.8,Exercise only
+68,1,260.2,Exercise only
+68,2,287.3,Exercise only
+68,4,285.9,Exercise only
+68,8,310.9,Exercise only
+68,12,315.9,Exercise only
+69,0,265.5,Exercise only
+69,1,254.3,Exercise only
+69,2,271.6,Exercise only
+69,4,276.3,Exercise only
+69,8,289.8,Exercise only
+69,12,325.7,Exercise only
+70,0,265.2,Exercise only
+70,1,289.6,Exercise only
+70,2,318.2,Exercise only
+70,4,311.1,Exercise only
+70,8,300.6,Exercise only
+70,12,343.8,Exercise only
+71,0,265.1,Exercise only
+71,1,299.8,Exercise only
+71,2,278.7,Exercise only
+71,4,281.1,Exercise only
+71,8,304.7,Exercise only
+71,12,329.5,Exercise only
+72,0,296.3,Exercise only
+72,1,321.7,Exercise only
+72,2,250.3,Exercise only
+72,4,280.8,Exercise only
+72,8,349.8,Exercise only
+72,12,346,Exercise only
+73,0,251.4,Exercise only
+73,1,232.3,Exercise only
+73,2,236.2,Exercise only
+73,4,279.8,Exercise only
+73,8,288.1,Exercise only
+73,12,323,Exercise only
+74,0,250.4,Exercise only
+74,1,231.4,Exercise only
+74,2,262.2,Exercise only
+74,4,292.4,Exercise only
+74,8,305,Exercise only
+74,12,327.7,Exercise only
+75,0,280,Exercise only
+75,1,258.8,Exercise only
+75,2,289,Exercise only
+75,4,301.4,Exercise only
+75,8,308.8,Exercise only
+75,12,329.8,Exercise only
+76,0,251,Diet and exercise
+76,1,219,Diet and exercise
+76,2,257.3,Diet and exercise
+76,4,233.4,Diet and exercise
+76,8,280.7,Diet and exercise
+76,12,283.1,Diet and exercise
+77,0,240,Diet and exercise
+77,1,234.8,Diet and exercise
+77,2,249,Diet and exercise
+77,4,258.7,Diet and exercise
+77,8,287.4,Diet and exercise
+77,12,234.8,Diet and exercise
+78,0,254,Diet and exercise
+78,1,291.7,Diet and exercise
+78,2,276.9,Diet and exercise
+78,4,288.4,Diet and exercise
+78,8,281.7,Diet and exercise
+78,12,323.3,Diet and exercise
+79,0,263.7,Diet and exercise
+79,1,284.3,Diet and exercise
+79,2,300,Diet and exercise
+79,4,299.6,Diet and exercise
+79,8,346.7,Diet and exercise
+79,12,337.3,Diet and exercise
+80,0,256.5,Diet and exercise
+80,1,260.7,Diet and exercise
+80,2,272.5,Diet and exercise
+80,4,276.2,Diet and exercise
+80,8,290.4,Diet and exercise
+80,12,330.7,Diet and exercise
+81,0,293.2,Diet and exercise
+81,1,300.5,Diet and exercise
+81,2,306.3,Diet and exercise
+81,4,297.8,Diet and exercise
+81,8,327.1,Diet and exercise
+81,12,361.4,Diet and exercise
+82,0,294.7,Diet and exercise
+82,1,270.3,Diet and exercise
+82,2,302.8,Diet and exercise
+82,4,310.9,Diet and exercise
+82,8,313.6,Diet and exercise
+82,12,339.5,Diet and exercise
+83,0,219.1,Diet and exercise
+83,1,240.2,Diet and exercise
+83,2,249.5,Diet and exercise
+83,4,252.5,Diet and exercise
+83,8,243.5,Diet and exercise
+83,12,256.2,Diet and exercise
+84,0,240,Diet and exercise
+84,1,253.8,Diet and exercise
+84,2,242.6,Diet and exercise
+84,4,235.2,Diet and exercise
+84,8,283.7,Diet and exercise
+84,12,286.4,Diet and exercise
+85,0,263.5,Diet and exercise
+85,1,274.8,Diet and exercise
+85,2,273.1,Diet and exercise
+85,4,271.3,Diet and exercise
+85,8,312.8,Diet and exercise
+85,12,326.1,Diet and exercise
+86,0,281.1,Diet and exercise
+86,1,315.4,Diet and exercise
+86,2,280.6,Diet and exercise
+86,4,318.6,Diet and exercise
+86,8,321.9,Diet and exercise
+86,12,361.9,Diet and exercise
+87,0,262.4,Diet and exercise
+87,1,242.9,Diet and exercise
+87,2,293.1,Diet and exercise
+87,4,289.2,Diet and exercise
+87,8,313.4,Diet and exercise
+87,12,344.1,Diet and exercise
+88,0,256.2,Diet and exercise
+88,1,262.5,Diet and exercise
+88,2,257.4,Diet and exercise
+88,4,271.6,Diet and exercise
+88,8,276.4,Diet and exercise
+88,12,293.8,Diet and exercise
+89,0,259.7,Diet and exercise
+89,1,272,Diet and exercise
+89,2,292.4,Diet and exercise
+89,4,298.8,Diet and exercise
+89,8,301.1,Diet and exercise
+89,12,320.7,Diet and exercise
+90,0,248.9,Diet and exercise
+90,1,227.9,Diet and exercise
+90,2,241.2,Diet and exercise
+90,4,241.7,Diet and exercise
+90,8,251.9,Diet and exercise
+90,12,291.5,Diet and exercise
+91,0,285.8,Diet and exercise
+91,1,266.8,Diet and exercise
+91,2,250.1,Diet and exercise
+91,4,294.9,Diet and exercise
+91,8,306.4,Diet and exercise
+91,12,293.2,Diet and exercise
+92,0,313.7,Diet and exercise
+92,1,279.2,Diet and exercise
+92,2,284.5,Diet and exercise
+92,4,294.8,Diet and exercise
+92,8,313.6,Diet and exercise
+92,12,336.3,Diet and exercise
+93,0,323.4,Diet and exercise
+93,1,307.2,Diet and exercise
+93,2,327.3,Diet and exercise
+93,4,338.5,Diet and exercise
+93,8,366.4,Diet and exercise
+93,12,368.3,Diet and exercise
+94,0,235.4,Diet and exercise
+94,1,231.4,Diet and exercise
+94,2,257.7,Diet and exercise
+94,4,204.4,Diet and exercise
+94,8,250.9,Diet and exercise
+94,12,272.3,Diet and exercise
+95,0,245,Diet and exercise
+95,1,270.1,Diet and exercise
+95,2,263.2,Diet and exercise
+95,4,269.1,Diet and exercise
+95,8,285,Diet and exercise
+95,12,319.6,Diet and exercise
+96,0,258.9,Diet and exercise
+96,1,273.9,Diet and exercise
+96,2,292.5,Diet and exercise
+96,4,301.7,Diet and exercise
+96,8,303.3,Diet and exercise
+96,12,310.2,Diet and exercise
+97,0,223.2,Diet and exercise
+97,1,236.7,Diet and exercise
+97,2,250.6,Diet and exercise
+97,4,245.7,Diet and exercise
+97,8,261.6,Diet and exercise
+97,12,281.3,Diet and exercise
+98,0,242,Diet and exercise
+98,1,250.4,Diet and exercise
+98,2,221.2,Diet and exercise
+98,4,260.9,Diet and exercise
+98,8,271.6,Diet and exercise
+98,12,266.8,Diet and exercise
+99,0,235.5,Diet and exercise
+99,1,258.5,Diet and exercise
+99,2,257.1,Diet and exercise
+99,4,266.1,Diet and exercise
+99,8,256.4,Diet and exercise
+99,12,280.6,Diet and exercise
+100,0,236.9,Diet and exercise
+100,1,252.8,Diet and exercise
+100,2,239.3,Diet and exercise
+100,4,284,Diet and exercise
+100,8,261.4,Diet and exercise
+100,12,305.1,Diet and exercise

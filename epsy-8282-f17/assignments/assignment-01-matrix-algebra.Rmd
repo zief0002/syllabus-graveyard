@@ -1,0 +1,85 @@
+---
+title: "Assignment 1"
+author: "EPsy 8282"
+date: "Fall 2017"
+header-includes:
+   - \usepackage{mathspec}
+   - \usepackage{xcolor}
+   - \usepackage{booktabs}
+   - \definecolor{umn}{RGB}{153, 0, 85}
+   - \definecolor{umn2}{rgb}{0.1843137, 0.4509804, 0.5372549}
+   - \definecolor{myorange}{HTML}{EA6153}
+output: 
+  pdf_document:
+    highlight: tango
+    latex_engine: xelatex
+    fig_width: 6
+    fig_height: 6
+mainfont: "Bembo Std"
+sansfont: "Helvetica Neue UltraLight"
+monofont: Inconsolata
+urlcolor: "umn2"
+always_allow_html: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Matrix Algebra Operations
+
+Let **A**, **B**, **C**, and **D** be matrices defined as following:
+
+$$
+\mathbf{X} = \begin{pmatrix} 1 & 52 & 1 \\ 1 & 34 & 0 \\ 1 & 35 & 1 \\ 1 & 57 & 1 \end{pmatrix} \hspace{2em}
+\mathbf{Y} = \begin{pmatrix} 4.0 \\ 3.1 \\ 3.6 \\ 3.6 \end{pmatrix}
+\hspace{2em}
+\mathbf{C} = \begin{pmatrix} 3 & 0 & 0 \\ 0 & 5 & 0 \\ 0 & 0 & 2 \end{pmatrix}
+\hspace{2em}
+\mathbf{D} = \begin{pmatrix} 2 & 7 & 8 \\ 2 & 5 & 2 \end{pmatrix}
+$$
+
+Report the results of the following operations.
+
+1. $dim\left(\mathbf{X}\right)$
+
+2. $\mathbf{X} \mathbf{D}^{T}$
+
+3. $\left| \mathbf{C} \right|$ 
+
+4. $tr\left( \mathbf{C} \right)$ 
+
+5. $\left(\mathbf{X}^{T}\mathbf{X}\right)^{-1}\mathbf{X}^T\mathbf{Y}$
+
+
+## Working with Variances
+
+Let $\mathbf{X}$ and $\mathbf{Y}$ be random variables with means $\mu_{x}$ and $\mu_y$, variances $\sigma^2_x$ and $\sigma^2_y$, and covariance $\sigma_{xy}$, respectively. Let $c_1$ and $c_2$ be constants. Using the variance definitions from the matrix algebra handout (beginning at the end of p. 9), we can show that
+
+$$
+\mathrm{var}\big(c_1\mathbf{X} + c_2\mathbf{Y}\big) = c^2_1\sigma^2_x + c^2_2\sigma^2_y + 2c_1c_2\sigma_{xy}
+$$
+
+In the next set of questions, you will verify this numerically.
+
+6. Create and record two $5\times1$ vectors: $\mathbf{X}$ and $\mathbf{Y}$, and two constants $c_1$ and $c_2$. 
+
+7. Compute and record: $\mu_x$, $\mu_y$, $\sigma^2_x$, $\sigma^2_y$, and $\sigma_{xy}$.
+
+8. Using the vectors and constants you created in Question 6, compute $var\big(c_1\mathbf{X} + c_2\mathbf{Y}\big)$. Show your work/syntax for full credit.
+
+9. Using the vectors and constants you created in Question 6, compute $c^2_1\sigma^2_x + c^2_2\sigma^2_y + 2c_1c_2\sigma_{xy}$. Show your work/syntax for full credit.
+
+## Covariance Matrices
+
+10. Using the vectors you created in Question 6, write out the covariance matrix ($\boldsymbol{\Sigma}$) for $\underset{5\times2}{\mathbf{d}}$, where $\mathbf{d}= \begin{pmatrix}X_1 & Y_1 \\ X_2 & Y_2 \\ X_3 & Y_3 \\ X_4 & Y_4 \\ X_5 & Y_5\end{pmatrix}$.
+
+11. Using the constants and vectors you created in Question 6, verify that
+
+$$
+var\left(\mathbf{d}\times\mathbf{c}\right) = \mathbf{c}^T \times \boldsymbol{\Sigma} \times \mathbf{c}
+$$ 
+
+\hspace{2em} for $\underset{2\times1}{\mathbf{c}} = \begin{pmatrix}c_1 \\ c_2\end{pmatrix}$. Show your work/syntax for full credit.
+
+

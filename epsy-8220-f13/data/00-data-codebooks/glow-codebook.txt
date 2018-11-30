@@ -1,0 +1,56 @@
+GLOW.csv
+Codebook
+
+-------------------------------
+
+BACKGROUND
+
+The Global Longitudinal Study of Osteoporosis in Women (GLOW) is an international study of osteoporosis in women over 55 years of age being coordinated at the Center for Outcomes Research (COR) at the University of Massachusetts at Worcester. The study has enrolled over 60,000 women aged 55 and older in ten countries. 
+
+The major goals of the study are to use the data to provide insights into the management of fracture risk, patient experience with prevention and treatment of fractures and distribution of risk factors among older women on an international scale over the follow up period. 
+
+Complete details on the study as well as a list of GLOW publications may be found at the Center for Outcomes Research web site, www.outcomes-umassmed.org/glow.
+-------------------------------
+DATA
+
+The data, which are a sample from the original data set, is composed of 500 subjects  from six sites in the United States. It includes data about several risk factors for fractures collected in a baseline questionnaire. The outcome variable is whether the subject had a fracture within the first year of follow up.  
+
+Note: In order to have a manageable data set (n = 500), subjects with fractures in the original data were over-sampled and subjects without fractures were under-sampled. As a result associations and conclusions from modeling these data do not apply to the study cohort as a whole. For example, the incident first-year fracture rate among the 21,000 subjects enrolled in these six sites is about 4% as opposed to 25% in the sample.The data come from Hosmer Jr., D. W., Lemeshow, S., & Sturdivant, R. X. (2013). Applied logistic regression (3rd edition). New York: Wiley.
+-------------------------------
+
+VARIABLES
+
+id		Identification code
+site		Study site
+		 1-6
+phys		Physician ID code
+		 128 unique codes
+prior		History of prior fracture
+		 1 = Yes		 0 = No
+age		Age at enrollment
+		 in years
+weight		Weight at enrollment
+		 in kg
+height		Height at enrollment
+		 in cm
+bmi		Body mass index
+		 in kg/m^2
+premeno		Menopause before age 45
+		 1 = Yes		 0 = No
+momfrac		Mother had hip fracture
+		 1 = Yes		 0 = No
+armassist	Arms are needed to stand from a chair
+		 1 = Yes		 0 = No
+smoke		Former or current smoker
+		 1 = Yes		 0 = No
+selfrisk	Self-reported risk of fracture
+		 1 = Less than others of the same age		 2 = Same as others of the same age		 3 = Greater than others of the same age 
+fracscore	Fracture risk score
+		 Composite risk score from 1-13
+
+		 fracscore = 0 x (age <= 60) + 1 x (60 < age ≤ 65) + 2 x (65 < age <= 70) + 3
+		  x (70 < age <= 75) + 4 x (75 < age <= 80) + 5 x (80 < age <= 85) + 6 x (age > 85) 
+		  + (prior = 1) + (momfrac = 1) + (weight < 56.8) + 2 × (armassist = 1) + (smoke = 1).
+fracture	Any fracture in first year		 1 = Yes		 0 = No
+-------------------------------
+	

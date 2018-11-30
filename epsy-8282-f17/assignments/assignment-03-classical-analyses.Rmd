@@ -1,0 +1,80 @@
+---
+title: "Assignment 3"
+author: "EPsy 8282"
+date: "Fall 2017"
+header-includes:
+   - \usepackage{mathspec}
+   - \usepackage{xcolor}
+   - \usepackage{booktabs}
+   - \definecolor{umn}{RGB}{153, 0, 85}
+   - \definecolor{umn2}{rgb}{0.1843137, 0.4509804, 0.5372549}
+   - \definecolor{myorange}{HTML}{EA6153}
+output: 
+  pdf_document:
+    highlight: tango
+    latex_engine: xelatex
+    fig_width: 6
+    fig_height: 6
+mainfont: "Bembo Std"
+sansfont: "Helvetica Neue UltraLight"
+monofont: Inconsolata
+urlcolor: "umn2"
+always_allow_html: yes
+---
+
+Please submit your responses to each question in a printed document. Also, please adhere to the following guidelines for further formatting your assignment: 
+
+- All graphics should be resized so that they do not take up more room than necessary and should have an appropriate **caption** and **labels**. 
+- Any typed mathematics (equations, matrices, vectors, etc.) should be appropriately typeset within the document using Equation Editor, Markdown, or \LaTeX. 
+
+This assignment is worth 11 points. Each question is worth 1 point unless otherwise noted. 
+
+\rule{0.5\linewidth}{\linethickness}
+
+For this assignment, you will use the file *rat_weight.csv*. This file contains data from a study that was conducted to investigate the effect of diet and exercise on the growth of laboratory rats. One hundred young rats were randomly assigned to receive one of four regimens (25 rats per group): (1) a control group; (2) fed a special diet; (3) subjected to a daily treadmill exercise program, but were fed as usual; and (4) fed the special diet and subjected to the exercise program. In statistical parlance, the design is referred to as a *factorial design*.
+
+After one month on the assigned regimens, the body weight of each rat was recorded (week = 0). Body weight was also recorded for each of two consecutive weeks following the baseline measurement (week = 1 and week = 2) and then again two weeks later (week = 4). An additional measurement was recorded after another four weeks passed (week = 8) and a final measurement was taken four weeks later (week = 12). The primary research question was whether there were dietary/exercise effects on rats' body weights over time. The researchers were interested in both differences in the growth trajectories between treatments, and also in the rats' body weights at the end of the study.
+
+
+The data consists of four variables, which are:
+
+- `rat`: Rat ID number
+- `week`: Week after one month of treatment the measurment took place (0, 1, 2, 4, 8, 12)
+- `weight`: Weight of rat (in grams)
+- `regimen`: Treatment group
+
+
+The data come from: [http://www.stat.ncsu.edu/people/boos/courses/st732/rats.dat](http://www.stat.ncsu.edu/people/boos/courses/st732/rats.dat)
+
+
+\newpage
+## Description
+
+1. Create spaghetti plots of the raw longitudinal profiles of rats' weights over time. Plot each treatment group in a separate panel. Give your general impressions on the "overall" observed patterns and how they might compare across treatment groups. 
+
+2. Compute and report the mean weights for each group at each time point. 
+
+3. Create a plot of the mean profiles for each treatment group. Plot these on a single panel. (Note: This is an interaction plot between time and experimental group.)
+
+4. Based on the plot of the mean profiles over time for each group, does the visual evidence support a main-effect of time? Or an interaction-effect between treatment group and time? Explain.
+
+5. Calculate and report the sample covariance matrices and correlation matrices between time points for each group separately. (If you would like, you can report the results for each treatment group in a single matrix.)
+
+## RM-ANOVA
+
+6. Based on the covariance and correlation matrices, is the sphericity assumption for a univariate Repeated Measures ANOVA (RM-ANOVA) likely to be satisfied? Explain.
+
+7. Conduct a Repeated Measures ANOVA using week as a within-subjects factor and treatment group as a between-subjects factor. Copy-and-paste the output from the analysis, including the output related to the sphericity assumption, into your document.
+
+8. Based on the output from the RM-ANOVA analysis, what do you conclude about the sphericity assumption? Justify your response with statistical evidence from the analysis. 
+
+9. Is there an interaction-effect between  between treatment group and time? Or only a main-effect of time? Justify your response with statistical evidence from the analysis. Be sure to consider your response to the previous question to determine which statistical evidence to provide in your justification.
+
+## Analysis of Summary Measures
+
+10. One of the researchers argued that an alternative method of analysis would be to fit a linear regression to each individual rat's data and then compare the average slopes across treatment groups using a one-factor (one-way) ANOVA. Carry out and report the results from this analysis (assuming a linear rate-of-change) to compare the growth rates among the four treatment groups. 
+
+11. Are your conclusions parallel to the analytic results from the RM-ANOVA? Explain.
+
+
+
