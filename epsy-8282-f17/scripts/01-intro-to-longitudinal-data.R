@@ -1,5 +1,20 @@
-fb = read.csv(file = "/Users/zief0002/Desktop/big-ten-wide.csv")
-head(fb)
+##################################################
+### Load libraries
+##################################################
+
+library(dplyr)
+library(ggplot2)
+library(readr)
+library(sm)
+
+
+
+###################################################
+### Read in the data
+###################################################
+
+big10_wide = read_csv(file = "~/Dropbox/epsy-8282/data/big-ten-wide.csv")
+head(big10_wide)
 
 fb2 = read.csv(file = "/Users/zief0002/Desktop/big-ten-long.csv")
 head(fb2) 

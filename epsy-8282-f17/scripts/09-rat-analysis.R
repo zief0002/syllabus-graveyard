@@ -19,8 +19,7 @@ ggplot(data = rats, aes(x = week, y = weight, group = rat)) +
   stat_summary(geom = "line", fun.y = mean, group = 1, lwd =2) +
   theme_bw() +
   xlab("Week") +
-  ylab("Weight (in g)") +
-  facet_wrap(~regimen)
+  ylab("Weight (in g)")
 
 
 ##################################################
@@ -110,23 +109,17 @@ confset(
 # Evaluate the effect of Diet (Linear growth; Linear RE)
 lmer.1.1 = lmer(weight ~ 1 + week + regimen + (1 + week | rat), data = rats, REML = FALSE)
 lmer.1.2 = lmer(weight ~ 1 + week + regimen + week:regimen + (1 + week | rat), data = rats, REML = FALSE)
-lmer.2.1 = lmer(weight ~ 1 + poly(week, 2) + regimen + (1 + poly(week, 2) | rat), data = rats, REML = FALSE)
-
 
 # Evaluate the effect of Diet (Quadratic growth; Linear RE)
 lmer.2.1 = lmer(weight ~ 1 + poly(week, 2) + regimen + (1 + week | rat), data = rats, REML = FALSE)
-
 lmer.2.2 = lmer(weight ~ 1 + poly(week, 2) + regimen + week:regimen + (1 + week | rat), data = rats, REML = FALSE)
-
-
-lmer.2.3 = lmer(weight ~ 1 + poly(week, 2) + regimen + week:regimen + I(week^2):regimen + (1 + week | rat), data = rats, REML = FALSE)
 
 
 # Compute confidence set
 confset(
-  cand.set = list(lmer.1.1, lmer.1.2, lmer.2.1),
+  cand.set = list(lmer.1.1, lmer.1.2, lmer.2.1, lmer.2.2),
   modnames = c("Linear growth - ME of Diet", "Linear growth - Interaction", 
-               "Quadratic growth - ME of Diet, Quadratic RE") ,
+               "Quadratic growth - ME of Diet", "Quadratic growth - Interaction") ,
   method = "ordinal"
 )
 
