@@ -2,7 +2,7 @@ EPsy 8251: Methods in Data Analysis for Educational Research I
 =========
 
 
-This GitHub repository is the home for the Fall 2018 _EPsy 8251: Methods in Data Analysis for Educational Research I_ course materials. You can access the course website at: [http://zief0002.github.io/epsy-8251/](http://zief0002.github.io/epsy-8251/)
+This GitHub repository is the course archive for the Fall 2018 sections of _EPsy 8251: Methods in Data Analysis for Educational Research I_.
 
 <br />
 
