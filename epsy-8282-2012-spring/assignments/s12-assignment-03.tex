@@ -1,0 +1,341 @@
+\documentclass[]{article} 
+
+
+\usepackage{amsmath}
+\usepackage{color}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{fancybox}
+\usepackage{fourier}
+
+\usepackage{graphicx}
+
+
+\usepackage{hyperref, breakurl}
+
+
+
+\definecolor{umn}{rgb}{0.4784314,0.0,0.09803922}
+\hypersetup{colorlinks,breaklinks,
+            linkcolor=umn,urlcolor=umn,
+            anchorcolor=umn,citecolor=umn}
+            
+
+
+
+\title{ANALYZING BASIC MODELS WITH lm() AND lmer()} 
+\author{} 
+\date{} 
+
+\pagestyle{fancy}
+\lhead{
+\includegraphics[width=2cm]{/Users/zief0002/Documents/UMN-Images/Goldy/goldyMoutU}}
+\chead{ \textbf{EPsy 8282---Statistical Analysis of Longitudinal Data I}\\
+Lab \#3~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\\
+}
+\rhead{}
+\lfoot{}
+\cfoot{}
+\rfoot{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+\renewcommand{\headsep}{1.4cm}
+
+\fancyput(3.25in,-4.5in){%
+\setlength{\unitlength}{1in}\fancyoval(7,9.5)}
+
+
+\begin{document}
+
+
+\maketitle 
+\thispagestyle{fancy}
+
+\noindent This lab is intended to give you experience in using the \texttt{lm()} function for traditional
+linear regression (LR) and the \texttt{lmer()} function for linear mixed effect regression (LMER). The long format data previously considered will be used in both the LR and LMER analyses. This is not appropriate for LR but we use it in anticipation of moving to LMER.\\
+\linebreak
+You will use the \texttt{sleeplab.Rdata} data set you created in the first lab. Make a note of where this file resides on your hard drive. An Rdata file is loaded into \texttt{R} using the \texttt{load()} function. If you do not have this file, you must remake by following the steps in Lab 1. See Lab 1 for a complete description of the data set. The response variable is \texttt{Reaction}, which is the average reaction time for a number of cognitive tests. The time metric is \texttt{Days} ($0,1,\ldots,9$), and the static predictors are \texttt{gpa} and two versions of sex, \texttt{female} (0 = male, 1 = female) and \texttt{female.c} (``male'', ``female'').\\
+\linebreak
+\pagebreak
+
+\noindent\textbf{Read in the Data:} To load the Rdata file, type the following syntax in your script file and run it.
+
+\begin{verbatim}
+  > # The following line must be tailored to your system:
+  > load(file = "/.../sleeplab.Rdata")
+  > ls()
+\end{verbatim}
+
+\noindent \verb,/.../, indicates you replace $\ldots$ with the location of the file. For example,, on my computer the entire syntax would be \texttt{/Users/zief0002/Documents/EPsy8282/sl\allowbreak eeplab.Rdata}. For Windows users, replace the pathname with \verb,C:\\...\\,. Be sure to use double backslashes. \\
+\linebreak
+An indication you successfully loaded the file is the absence of any error messages. That is,
+success is indicated by a new prompt line in \texttt{R} (i.e., \texttt{>}). If you did not
+successfully read in the file, then check your syntax and try again. \\
+\linebreak
+The \texttt{ls()} function shows the objects in the Rdata file, which are data frames. If you
+followed the directions in Lab 1, the long format data frame is named \texttt{sleep.long3}. If you renamed this data frame, then be sure to use the new name in the syntax below. It is a good idea to run \texttt{head(sleep.long3)} to see the top of the data set.\\
+\linebreak
+\textbf{Assignment Guidelines:} In each section you are directed to produce output, which you should copy from \texttt{R} and paste into your word/document processor. Please label the sections as indicated below and use the question numbering as indicated. All questions are worth 1 point. There is a total of 39 points possible. There is no external R script for this lab. The R commands you will need are embedded in the lab itself.
+
+\pagebreak
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Plotting Individual Growth Curves
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section*{Plotting Individual Growth Curves} 
+ 
+\noindent Though the last lab dealt extensively with graphing, it is important to always start with a look at the data. Run the syntax below to create a graph of the superimposed growth curves.
+
+\begin{verbatim}
+  > library(ggplot2)
+  > theme_set(theme_bw())
+  > ggplot(data=sleep.long3, aes(x = Days, y = Reaction, groups = SubNum)) + 
+         geom_line() + 
+         theme_bw() + 
+         opts(title = "Individual Curves")
+\end{verbatim}
+
+\noindent Include the graph in your write-up and answer the following questions based on the graph you produced above. You can label this as ``Section: Graph I'' in your write-up. Please keep the
+answers short.
+
+\begin{enumerate}[resume]
+\item Based on the graph, is there an indication you need a random effect for the intercept in a LMER model? Be specific.
+\item Based on the graph, is there an indication you need a random effect for the slope in a LMER model? Be specific.
+\end{enumerate}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% LM
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\pagebreak
+\section*{Getting Your Feet Wet: Linear Regression}
+
+\noindent Before considering the LMER model, you will work with the LR model also known as the linear model (LM). In this lab you will consider the simple case of using days of the study to predict reaction time scores. Then you will consider the case of sex as a predictor in addition to days. The
+predictors will first be included as single terms and then their interaction will be included.
+
+\subsection*{Single Quantitative Predictor}
+\noindent Run the syntax below, which models \texttt{Reaction} as a function of \texttt{Days}.
+
+\begin{verbatim}
+  > LM.1 <- lm(Reaction ~ 1 + Days, data = sleep.long3)
+  > summary(LM.1)
+\end{verbatim}
+
+\noindent Answer the following questions based on the two graphs you produced immediately above. You can label this as ``Section: Linear Regression I'' in your write-up. Please keep the answers short.
+
+\begin{enumerate}[resume]
+\item Using symbolic notation, including Roman letters or variable names where appropriate, write the LR model corresponding to the above syntax (see the lecture notes).
+\item Provide a detailed interpretation of the estimated intercept.
+\item Provide a detailed interpretation of the estimated slope.
+\item What does the $p$-value for the slope indicate in this case? Be specific.
+\item What assumptions are made in computing the $p$-values in this case? Be specific.\end{enumerate}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% ANCOVA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\pagebreak
+\subsection*{ANCOVA Model}
+
+\noindent In the second model you will use sex and study days as predictors of reaction time. In LR this is sometimes referred to as an analysis of covariance (ANCOVA) because one predictor is categorical and another is quantitative. In \texttt{R}, it is better to save a categorical variable as a factor
+variable, and then use the factor variable in the syntax. Before estimating the LR model, save
+\texttt{female.c} as the factor variable \texttt{female.f} in the data frame.
+
+\begin{verbatim}
+  > sleep.long3$female.f <- factor(sleep.long3$female.c, labels = c("Male", "Female"))
+  > head(sleep.long3)
+\end{verbatim}
+
+\noindent Having saved the factor variable, run the following syntax for the ANCOVA model.
+
+\begin{verbatim}
+  > LM.2 <- lm(Reaction ~ 1 + Days + female.f, data = sleep.long3)
+  > summary(LM2.out)
+\end{verbatim}
+
+\noindent Answer the following questions. You can label this as ``Section: Linear Regression II'' in your write-up.
+
+\begin{enumerate}[resume]
+\item Notice the variable label name in the third row of the \texttt{Coefficients} table. Explain why the variable label is not \texttt{female.f}. Be detailed in your answer.
+\item Would the results be different if \texttt{female} was used rather than \texttt{female.f} in the syntax above? Explain.
+\item Compare the multiple $R^2$ values (not adjusted) for \texttt{LM.2} and \texttt{LM.1}. Based on these values, is there statistical evidence that \texttt{female.f} is an ``important'' predictor? Explain.
+\item Provide a detailed interpretation of the fixed effect estimate associated with \texttt{Days}.
+\item Provide a detailed interpretation of the last fixed effect estimate.
+\item Write the predicted (fitted) change curve equation for females using the estimates from the output.
+\item Write the predicted (fitted) change curve equation for males using the estimates from the output.
+\item Based on your answers for the last two questions, explain any differences in the change curves for males and females.
+\item If you were to graph the predicted (fitted) curves for females and males in this example, would the lines cross? Explain why or why not.
+\end{enumerate}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Interaction Model
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection*{Interaction Model}
+
+\noindent The third model includes the interaction between \texttt{female.f} and \texttt{Days}, in addition to the single effects. Run the syntax below.
+
+\begin{verbatim}
+  > LM.3 <- lm(Reaction ~ 1 + Days + female.f + Days:female.f, data = sleep.long3)
+  > summary(LM.3)
+\end{verbatim}
+
+\noindent Answer the following questions. You can label this as ``Section: Linear Regression III'' in your write-up.
+
+\begin{enumerate}[resume]
+\item What does the following syntax do? \texttt{Days:female.f}. Be specific.
+\item Notice the variable label name in the fourth row of the \texttt{Coefficients} table. Explain why the variable label is not \texttt{Days:female.f}. Be detailed in your answer.
+\item Provide a detailed interpretation of the fixed effect estimate associated with \texttt{Days}.
+\item Provide a detailed interpretation of the fixed effect estimate associated with \texttt{Days:female.fFemale}.
+\item Based on the information in the \texttt{Days:female.fFemale} row of the \texttt{Coefficients table}, is there statistical evidence we should adopt the interaction model of this section or  the ANCOVA model of the last section? Explain.
+\item Write the predicted (fitted) change curve equation for females using the estimates from the output.
+\item Write the predicted (fitted) change curve equation for males using the estimates from the output.
+\item Based on your answers for the last two questions, explain any differences in the change curves for males and females.
+\item If you were to graph the predicted (fitted) curves for females and males in this example, would the lines cross? Explain why or why not.
+\end{enumerate}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Linear Mixed Effects Regression
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\pagebreak
+\section*{Linear Mixed Effects Regression}
+
+\noindent The above three LR models have LMER analogs. Estimate each LMER model and answer the questions in each section.
+
+\subsection*{LMER I}
+
+\noindent The simplest LMER model we consider has \texttt{Days} as the predictor. Run the following syntax.
+
+\begin{verbatim}
+  > library(lme4)
+  > LMER.1 <- lmer(Reaction ~ Days + (1 + Days | SubNum), data = sleep.long3, REML = F)
+  > summary(LMER.1)
+\end{verbatim}
+
+\noindent Answer the following questions. You can label this as ``Section: LMER I'' in your write-up.
+
+\begin{enumerate}[resume]
+\item What does the following syntax do? \texttt{REML=F}.
+\item Using symbolic notation, including Roman letters and variable names where appropriate, write the LMER model corresponding to the above syntax (see lecture notes).
+\item Consider the \texttt{Random effects} table in the output. Explain each of the numbers in the \texttt{Variance} column, i.e., interpret the values.
+\item Consider the \texttt{Random effects} table in the output. Explain what the value in the \texttt{Corr} column represents and what it means in this situation (i.e., provide an interpretation for this example).
+\item Consider the \texttt{Random effects} table in the output. Based on the estimated values, is there evidence that the second random effect belongs in the model? Explain. (Hint: no addition calculations are required.)
+\item Consider the \texttt{Fixed effects} table in the output. Provide a detailed interpretation of the first fixed effect estimate in the \texttt{(Intercept)} row.
+\item Consider the \texttt{Fixed effects} table in the output. Provide a detailed interpretation of the fixed effect estimate in the \texttt{Days} row.
+\item Compare the fixed effects estimates of \texttt{LMER.1} and \texttt{LM.1}. Would you come to a very different conclusion regarding the change curve based on the two sets of estimates? Explain.
+\end{enumerate}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Graphing with a Static Quantitative Predictor
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\pagebreak
+\subsection*{LMER II}
+
+\noindent The second LMER model you will consider adds \texttt{female.f} as a static predictor. Run the syntax below.
+
+\begin{verbatim}
+  >LMER.2 <- lmer(Reaction ~ Days + female.f + (1 + Days | SubNum), data = sleep.long3, REML = F)
+  > summary(LMER.2)
+\end{verbatim}
+
+\noindent Answer the following questions. You can label this as ``Section: Random Effects'' in your
+write-up.
+
+\begin{enumerate}[resume]
+\item Provide a detailed interpretation of the fixed effect estimate in the \texttt{female.fFemale} row of the \texttt{Fixed effects} table.
+\item What do the $t$ values in the \texttt{Fixed effects} table indicate about the relative importance of the predictors? Explain. (Hint: not additional calculations required.)
+\item Compare the \texttt{(Intercept)} variance in the \texttt{Random effects} table for \texttt{LMER.2} and \texttt{LMER.1}. Explain any difference and what accounts for the difference.
+\item The \texttt{Residual} variance in the \texttt{Random effects} table did not change much from \texttt{LMER.1} to \texttt{LMER.2}. Explain why.
+\item If you were to estimate a model that \emph{excluded} \texttt{Days} and \texttt{female.f}, what would happen to the \texttt{Residual} variance in the \texttt{Random effects} table and why?
+\item Write the predicted (fitted) change curve for females using the estimates from the output. (Hint: random effects are not estimated.)
+\item Write the predicted (fitted) change curve for males using the estimates from the output. (Hint: random effects are not estimated.)
+\item Based on your answers for the last two questions, explain any differences in the change curves for males and females.
+\end{enumerate}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% LMER III
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection*{LMER III}
+
+\noindent The last LMER model you will consider adds the interaction between \texttt{Days} and
+\texttt{female.f}. Run the syntax below.
+
+\begin{verbatim}
+  > LMER.3 <- lmer(Reaction ~ 1 + Days + female.f + Days:female.f + ( 1 + Days | SubNum),
+               data = sleep.long3, REML = F)
+  > summary(LMER.3)
+\end{verbatim}
+
+\noindent Answer the following questions. You can label this as ``Section: LMER III'' in your write-up.
+
+\begin{enumerate}[resume]
+\item Compare the \texttt{Days} variance in the \texttt{Random effects} table for \texttt{LMER.3} and \texttt{LMER.2}. Explain any difference and what accounts for the difference.
+\item Consider the \texttt{Days:female.fFemale} row of the \texttt{Fixed effects} table. Is there statistical evidence that the interaction term belongs in the model? Explain. (Hint: do not do any additional calculations.)
+\item Write the predicted (fitted) change curve for females using the estimates from the output. (Hint: the random effects are not estimated.)
+\item Write the predicted (fitted) change curve for males using the estimates from the output. (Hint: the random effects are not estimated.)
+\item Based on your answers for the last two questions, explain any differences in the change curves for males and females.
+\end{enumerate}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%Graph of Interaction
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section*{Graph of Interaction}
+
+\noindent To gain experience in graphing based on \texttt{lmer()} output, you will construct a graph for malesand females based on \texttt{LMER.3}. Run the following syntax.
+
+\begin{verbatim}
+  > ## Preliminaries.
+  > fixef(LMER.3)
+  > head(model.matrix(LMER.3))
+  > graphdat <- with(sleep.long3, data.frame(SubNum, Days, female.f, 
+         model.matrix(LMER.3) %*% fixef(LMER.3)))
+  > colnames(graphdat)[4] <- "predict"
+  > head(graphdat)
+
+  > ## ggplot graph.
+  > ggplot(data = graphdat, aes(x = Days, y = predict, line = female.f)) + 
+         geom_line() + 
+         theme_bw()
+\end{verbatim}
+
+\noindent Include the graph in your write-up and answer the following questions. You can label this as
+``Section: Graph II'' in your write-up.
+
+\begin{enumerate}[resume]
+\item Though the syntax used to obtain \texttt{predict} might be unclear, what do you think the values of \texttt{predict} represent? (Hint: see the output for \texttt{fixef()} above.)
+\item Does the graph depict an interaction? Explain why or why not.
+\end{enumerate}
+
+
+
+
+
+
+
+
+
+
+
+
+
+\end{document}
+

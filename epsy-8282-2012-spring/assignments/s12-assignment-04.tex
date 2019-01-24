@@ -1,0 +1,442 @@
+\documentclass[]{article} 
+
+
+\usepackage{amsmath}
+\usepackage{color}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{fancybox}
+\usepackage{fourier}
+\usepackage{graphicx}
+\usepackage{hyperref, breakurl}
+\usepackage{listings}
+\usepackage{framed}
+\usepackage{courier}
+%\usepackage{etoolbox}
+
+\definecolor{umn}{rgb}{0.4784314,0.0,0.09803922}
+\definecolor{shadecolor}{rgb}{0.01593042, 0.12652781, 0.15970092} 
+\definecolor{CommentGrey}{rgb}{0.4405737, 0.5096361, 0.5168536}
+\definecolor{MyString}{rgb}{0.5886625, 0.6702373, 0.3801328} 
+\definecolor{MyAttribute}{rgb}{0.8876936, 0.9410391, 0.8370489}    
+\definecolor{MyKeyword2}{rgb}{ 0.7754940, 0.6426947, 0.2742962}       
+\definecolor{MyLogical}{rgb}{0.8274510, 0.2117647, 0.5098039}
+
+
+\hypersetup{colorlinks,breaklinks,
+            linkcolor=umn,urlcolor=umn,
+            anchorcolor=umn,citecolor=umn}
+
+%\newtoggle{InString}{}% Keep track of if we are within a string
+%\togglefalse{InString}% Assume not initally in string
+
+%\newcommand*{\ColorIfNotInString}[1]{\iftoggle{InString}{#1}{\color{MyAttribute}#1}}%
+%\newcommand*{\ProcessQuote}[1]{#1\iftoggle{InString}{\global\togglefalse{InString}}{\global\toggletrue{InString}}}%
+
+
+\lstloadlanguages{R}
+\lstset{
+	language=R,
+	keywordstyle=\ttfamily \color{MyKeyword2},
+	morekeywords={akj, as.ts, boot, boot.ci, brewer.pal, contr.poly, dev.off, envelope, file.choose, histogram, head, p.adjust, prop.table, read.table, replicate, reshape, sm.density, smd, str, tail, tsboot, data.frame, as.character, ggplot, xlab, ylab, aes, logLik, simulate, lmer, refit},
+	otherkeywords={scale_y_continuous, geom_bar, theme_bw, geom_hline},
+	identifierstyle=\ttfamily \color{MyAttribute},
+	stringstyle={\ttfamily \color{MyString}},	
+	showstringspaces=false,		
+	basicstyle=\ttfamily \color{MyKeyword2},
+	commentstyle={\ttfamily \color{CommentGrey}},
+	tabsize=2,	
+	breaklines=true,
+	breakindent=24pt,
+	breakatwhitespace=true,
+	aboveskip={.5\baselineskip},
+	belowskip={.5\baselineskip},
+	columns=fixed,
+	upquote=true,
+	extendedchars=true,
+	frameround=ffff,
+	framexleftmargin=0pt, 
+	float=ht,
+	xleftmargin=5pt,
+	upquote=true,
+	literate={~}{{$\sim$}}1,
+	emph={TRUE, FALSE},
+	alsoletter={.},
+	emphstyle=\color{MyLogical},
+	emph={[2] data, Model.1, Model.2, Model.3, Model.4, Model.5},
+	emphstyle={[2]\color{MyAttribute}},
+	} 
+
+
+\newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
+
+\title{} 
+\author{} 
+\date{} 
+
+\pagestyle{fancy}
+\lfoot{}
+\cfoot{}
+\rfoot{\thepage}
+
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\headsep}{0pt}
+\setlength{\headheight}{0pt}
+
+
+\fancyput(3.25in,-4.5in){%
+\setlength{\unitlength}{1in}\fancyoval(7,10)}
+
+
+
+\advance\textwidth by .5in
+\advance\oddsidemargin by -.25in
+\advance\evensidemargin by -.25in
+
+\begin{document}
+\thispagestyle{empty}
+
+
+\begin{titlepage}
+\begin{center}
+% Upper part of the page
+\includegraphics[width=0.15\textwidth]{/Users/andrewz/Dropbox/UMN-Images/Goldy/goldyMoutU}\\[1cm]    
+\textsc{\LARGE Statistical Analysis of Longitudinal Data I}\\[1.5cm]
+\HRule \\[.5cm]
+{ \huge \bfseries INFERENCE FOR STATIC PREDICTORS}\\[0.4cm]
+\HRule \\[1.5cm]
+\textsc{\Large Lab 4}\\[0.5cm]
+\vfill
+% Bottom of the page
+{\large Spring 2012}
+
+\end{center}
+\end{titlepage}
+
+\thispagestyle{fancy}
+\setlength{\textheight}{8.5in}
+
+
+\noindent This lab focuses on inference for the static predictors, \texttt{GPA} and \texttt{Female}. As
+discussed in the lecture, analysis is more manageable when the shape of the change curve and the number of random effects is pre-selected. This can be done based on graphs of the data, and you will assume this has already been accomplished. That is, all models considered in this lab will have the following two features.
+\begin{itemize}
+\item A linear change curve.
+\item Random effects for the intercept and slope.
+\end{itemize}
+The models considered will have only different numbers of static predictors. \\
+\linebreak
+\noindent In this lab you will consider the two main methods of inference discussed in the lectures.
+\begin{itemize}
+\item Multimodel inference using information criterion.
+\item Step-up using null hypothesis significance testing (NHST).
+\end{itemize}
+To standardize the labs, many of the decisions that you would have to make as an applied researcher are made for you. The emphasis in the lab will be the interpretation of the results rather than the specific steps of the analysis.\\
+\linebreak
+\noindent\textbf{Read in the Data:} To load the Rdata file, type the following syntax in your script file and run it.
+
+\begin{shaded}
+\begin{lstlisting}
+#####################################################
+## Tailor the first line to your system 
+#####################################################
+
+> load(file = "/.../sleeplab.Rdata")
+> ls()
+\end{lstlisting}
+\end{shaded}
+
+\noindent \verb,/.../, indicates you replace $\ldots$ with the location of the file. For example,, on my computer the entire syntax would be \texttt{/Users/andrewz/Documents/EPsy8282/sl\allowbreak eeplab.Rdata}. For Windows users, replace the pathname with \verb,C:\\...\\,. Be sure to use double backslashes. \\
+\linebreak
+An indication you successfully loaded the file is the absence of any error messages. That is,
+success is indicated by a new prompt line in \texttt{R} (i.e., \texttt{>}). If you did not
+successfully read in the file, then check your syntax and try again. \\
+\linebreak
+The \texttt{ls()} function shows the objects in the Rdata file, which are data frames. If you
+followed the directions in Lab 1, the long format data frame is named \texttt{sleep.long3}. If you renamed this data frame, then be sure to use the new name in the syntax below. It is a good idea to run \texttt{head(sleep.long3)} to see the top of the data set.\\
+\linebreak
+\textbf{Assignment Guidelines:} In each section you are directed to produce output, which you should copy from \texttt{R} and paste into your word/document processor. Please label the sections as indicated below and use the question numbering as indicated. All questions are worth 1 point. There is a total of 30 points possible. There is no external R script for this lab. The R commands you will need are embedded in the lab itself.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Multimodel Approach
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section*{Multimodel Approach} 
+ 
+\noindent Suppose your research is concerned with gender differences in cognition under sleep deprivation. In addition to collecting the gender of your subjects, you also collected their grade point average (GPA) as you thought this might be a possible mediator of gender group differences. Based on theory, the extent literature, your professional expertise, and common sense, you formulate the following five
+working hypothesis.
+
+\begin{enumerate}
+\item Gender differences and GPA difference are negligible.
+\item Males on average have higher initial scores than females and this difference persists over time.
+\item Initial gender differences are mediated by GPA, at least partially.
+\item Males on average have higher initial scores than females but the magnitude of the difference changes over time.
+\item Initial gender differences and differences over time are mediated by GPA, at least partially.
+\end{enumerate}
+
+You will translate these working hypotheses into LMER models and estimate the models. Then you will use the following information criteria to evaluate the models: AICc, $\Delta$, weight of evidence
+($w$), and evidence ratio ($E$). See the lecture notes for background on these measures.\\
+\linebreak
+The first step is to estimate the five models above with the sample data. Using the variable names
+from the data set, the \texttt{lmer()} syntax for running the five models appears below. Estimate
+the models and move on to the next step.
+
+\begin{shaded}
+\begin{lstlisting}
+> library(lme4)
+> Model.1 <- lmer(Reaction ~ Days + (Days | SubNum), 
+    data = sleep.long3,  REML = FALSE)
+> Model.2 <- lmer(Reaction ~ Days + female + 
+    (Days | SubNum), data = sleep.long3, REML = FALSE)
+> Model.3 <- lmer(Reaction ~ Days + female + gpa + 
+    (Days | SubNum), data = sleep.long3, REML = FALSE)          
+> Model.4 <- lmer(Reaction ~ Days * female + 
+    (Days | SubNum), data = sleep.long3, REML = FALSE)
+> Model.5 <- lmer(Reaction ~ Days * female + 
+    Days * gpa + (Days | SubNum), data = sleep.long3,
+    REML = FALSE)
+\end{lstlisting}
+\end{shaded}
+ 
+
+\pagebreak
+\noindent Now that the models have all been estimated, you are ready to compute the information criteria. Run the following syntax.
+
+\begin{shaded}
+\begin{lstlisting}
+> library(bbmle)
+> myIC <- ICtab(logLik(Model.1), logLik(Model.2), logLik(Model.3), logLik(Model.4), logLik(Model.5), 
+    type = "AICc", delta = TRUE, weights = TRUE, 
+    nobs = nrow(na.omit(sleep.long3)), sort = FALSE)
+> myIC
+> myIC$rweight <- max(myIC$weight)/myIC$weight
+> myIC
+\end{lstlisting}
+\end{shaded}
+
+\noindent It is convenient to create bar graphs of the weight of evidence and evidence ratio after sorting the
+results. Run the following syntax to accomplish these two tasks.
+
+\begin{shaded}
+\begin{lstlisting}
+> library(ggplot2)
+> mynames <- as.character(1:5)
+> plotdata <- data.frame(I(mynames), myIC$weight, myIC$rweight)
+> plotdata2 <- plotdata[order(plotdata$myIC.weight, decreasing = TRUE), ]
+
+#####################################################
+## Bar graph of weight of evidence
+#####################################################
+ 
+> ggplot(data = plotdata2, 
+      aes(x = mynames, y = myIC.weight)) + 
+    ylab("Weight") +
+    xlab("Model") +
+    geom_bar(fill = "grey80", colour = "black") + 
+    theme_bw() + 
+    scale_y_continuous(limits = c(0, 1))
+ 
+#####################################################
+## Bar graph of evidence ratio
+#####################################################
+
+> ggplot(data = plotdata2, 
+      aes(x = mynames, y = myIC.rweight)) + 
+    ylab("Weight") +
+    xlab("Model") +
+    geom_bar(fill = "grey80", colour = "black") + 
+    theme_bw() + 
+    geom_hline(aes(yintercept = 1), linetype = 2)
+\end{lstlisting}
+\end{shaded}
+
+
+\noindent Include the graphs with your write-up. All other output should be included as well.\\
+\pagebreak
+
+\noindent The final analysis you will perform is the parametric bootstrap for the evidence ratio. Be aware that the following syntax might take several minutes to run on your computer, so plan accordingly. \texttt{R} might look as if it is doing nothing during this time, i.e., it might look as if it is hung-up.
+
+\begin{shaded}
+\begin{lstlisting}
+#####################################################
+## ENSURES EVERYONE GETS THE SAME ANSWER:
+## DO NOT USE IN PRACTICE
+#####################################################
+
+> set.seed(1234)  
+
+#####################################################
+
+> bestr <- 4     # Number of best model (initial analysis)
+> nrep <- 999     # Number of bootstrap replications
+> mystorage <- numeric(nrep)   
+
+##################################################### 
+  
+> for(r in 1:nrep){ 
+    simDV <- simulate(Model.4)   
+    myfit <- ICtab(logLik(refit(Model.1, simDV[ ,1])), 
+        logLik(refit(Model.2, simDV[ ,1])),
+        logLik(refit(Model.3, simDV[ ,1])), 
+        logLik(refit(Model.4, simDV[ ,1])),
+        logLik(refit(Model.5, simDV[ ,1])),
+        type = "AICc", nobs = nrow(na.omit(sleep.long3)), 
+        weights = TRUE, sort = FALSE)
+    mystorage[r] <- max(myfit$weight) / myfit$weight[bestr]
+    }
+
+#####################################################
+## Sort the resulting bootstrap ratios and Compute 
+## empirical quantiles:
+#####################################################
+ 
+> mystorage2 <- sort(mystorage)
+> a <- c(0.1, 0.05, 0.01)  # a values
+> b <- (nrep + 1) * (1 - a)  # b values
+\end{lstlisting}
+\end{shaded}
+
+\newpage
+
+\begin{shaded}
+\begin{lstlisting}
+#####################################################
+## Save and display quantiles
+#####################################################
+
+> myquant <- as.data.frame(mystorage2[b])
+> colnames(myquant) <- "Quantile"
+> rownames(myquant) <- c("90%", "95%", "99%")
+> myquant
+\end{lstlisting}
+\end{shaded}
+
+\noindent Be sure to check that no errors were displayed and that the quantiles are shown in the \texttt{R} terminal window.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Questions
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section*{Multimodel Questions}
+
+\noindent Answer the following questions based on the output you produced. You can label this as ``Multimodel Questions'' in your write-up. The last question requires you run an additional function in \texttt{R}.
+
+\begin{enumerate}
+\item What does \texttt{REML=FALSE} accomplish and why is it used here?
+\item What does the \texttt{logLik()} function do and why is it used with \texttt{ICtab()}?
+\item List the model numbers in order of fit starting with the best fitting and ending with the worst fitting: \verb|__, __, __, __, __|.
+\item Is the best fitting model the ``true model'' or a candidate for the ``true model''? Explain.
+\item Is the best fitting mode a ``good'' model? How would you check to see if it is ``good''? Explain.
+\item Is there any advantage in this case to using $\Delta$ and $w$ rather than AICc? Explain.
+\item Based on the weight of evidence, is it obvious which model is the best fitting? Explain. You might want to use the bar graph for your answer.
+\item Interpret the weight of evidence for the best fitting model.
+\item Interpret the evidence ratio for the worst fitting model.
+\item Based on the bar graph of the evidence ratio, are there any models you would consider as \emph{definitely} rejected? Explain why or why not.
+\item Based on the bar graph of the evidence ratio, are there any models you would consider as \emph{definitely} retained? Explain.
+\item Based on the parametric bootstrap results, which models would you retain and which models would you reject based on the 0.95 quantile.
+\item In terms of information theory, what does it mean to reject a model in the multimodel approach?
+\item In a replication of this study, would the best fitting model again be the best fitting? Explain.
+\item Use \texttt{summary()} to print the fitted output object for the best fitting model. Using the fixed effects estimates, what is the exact nature of the differences referred to in the verbal description of the model? (Use the estimates to clarify the nature of the effects.)
+\end{enumerate}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Step-Up using NHST
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section*{Step-Up using NHST}
+
+\noindent As discussed in this course, the multimodel approach has certain advantages, such as the direct evaluation of predata models. A less attractive but popular alternative to the multimodel approach is a NHST strategy. In this lab you will consider a step-up planned approach using NHST.\\
+\linebreak
+Suppose that based on theory, the extent literature, your professional expertise, and common sense, you plan to carry out statistical tests in the following steps. You will begin with a model that has no static predictors (\texttt{Days} is the only predictor). Then you will perform statistical tests for the following four steps:
+
+\begin{itemize}
+\item Add \texttt{female} as a single effect (intercept effect).
+\item Add \texttt{gpa} as a single effect.
+\item Add \texttt{female:Days} interaction (slope effect).
+\item Add \texttt{gpa:Days} interaction.
+\end{itemize}
+
+\noindent The predictor terms will be accumulated regardless their significance, though you are to make
+judgments of the results in the questions that follow.\\
+\linebreak
+The models for the steps will be numbered from 1 to 5, with the first model being the one excluding all static predictors. The syntax below estimates the models that are required for the steps. Run the syntax and then move on to the testing.
+
+\begin{shaded}
+\begin{lstlisting}
+> NHST.1 <- lmer(Reaction ~ Days + (Days | SubNum), 
+    data = sleep.long3, REML = FALSE)
+> NHST.2 <- lmer(Reaction ~ Days + female + 
+    (Days | SubNum), data = sleep.long3, REML = FALSE)
+> NHST.3 <- lmer(Reaction ~ Days + female + gpa + 
+    (Days | SubNum), data = sleep.long3, REML = FALSE)
+> NHST.4 <- lmer(Reaction ~ Days * female + gpa + 
+    (Days | SubNum), data = sleep.long3, REML = FALSE)
+> NHST.5 <- lmer(Reaction ~ Days * female + Days * gpa + 
+    (Days | SubNum), data = sleep.long3, REML = FALSE)
+\end{lstlisting}
+\end{shaded}
+
+\pagebreak
+\noindent Now you will use \texttt{anova()} to carry out the analysis steps as described above. Run the following syntax.
+
+\begin{shaded}
+\begin{lstlisting}
+> an.1 <- anova(NHST.1, NHST.2)
+> an.2 <- anova(NHST.2, NHST.3)
+> an.3 <- anova(NHST.3, NHST.4)
+> an.4 <- anova(NHST.4, NHST.5)
+\end{lstlisting}
+\end{shaded}
+
+\noindent It is convenient to put the results in a table. The following syntax accomplishes this.
+
+\begin{shaded}
+\begin{lstlisting}
+> mytable <- rbind(an.1[2, 5:7], an.2[2, 5:7], an.3[2, 5:7], an.4[2, 5:7])
+> rownames(mytable) <- c("Step 1", "Step 2", "Step 3", "Step 4")
+> mytable
+\end{lstlisting}
+\end{shaded}
+
+\noindent Be sure to include the output in your write-up.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% NHST Questions
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section*{NHST Questions}
+
+\noindent Answer the following questions based on the output you produced. You can label this as ``NHST Questions'' in your write-up. \textbf{Your answers should reflect the fact that NHST was used for the analysis.} \textbf{Where applicable, consider a result statistically significant when $p \leq 0.05$.}
+
+\begin{enumerate}[resume]
+\item What does the \texttt{Df} column of \texttt{mytable} list, and why are all the values 1?
+\item In words, what is the null hypothesis in step 1?
+\item In words, what is the null hypothesis in step 4?
+\item Is there evidence that you should include a gender intercept effect in the model? Explain.
+\item Is there evidence that gpa mediates an intercept effect of gender? Explain.
+\item Is there evidence that you should include a gender interaction effect in the model? Explain.
+\item Is there evidence that you should include a gpa interaction effect in the model? Explain.
+\item Based on all the steps, which one of the models (1-5) \emph{in Section \ref{sec:multimodel}} would you select and why?
+\item From a \emph{multimodel approach} perspective, is there any problem in selecting only a single model in the analysis? Explain.
+\item From a \emph{multimodel approach} perspective, is there any problem in using \texttt{NHST.1} in the step-up analysis? Explain.
+\item Are models such as \texttt{NHST.1} required in other NHST approaches? Explain.
+\item In the step-up approach you ran several statistical tests. Is this an issue from a NHST perspective? Is multiple testing an issue with the multimodel approach? Explain.
+\item Step 2 of your analysis yielded the smallest observed chi-squared value. Does this mean that the model with female and gpa intercept effects is the worst fitting model? Explain.
+\item There is a practical reason why you were not asked to run the parametric bootstrap in the step-up procedure. What do you think it is? What is the advantage in this regard of using the parametric bootstrap with the multimodel approach?
+\item In step 2 of the analysis, do you think the parametric bootstrap would lead to a different conclusion about the null hypothesis? Explain.
+\end{enumerate}
+
+
+
+
+\end{document}
+

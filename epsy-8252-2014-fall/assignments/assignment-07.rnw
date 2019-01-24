@@ -1,0 +1,68 @@
+\documentclass[]{article} 
+
+\usepackage{amsmath}
+\usepackage{caption}
+\captionsetup[table]{textfont={it}, labelfont={}, singlelinecheck=false, labelsep=newline}
+\captionsetup[figure]{textfont={}, labelfont={it}, singlelinecheck=false, labelsep=period}
+\captionsetup[subfigure]{textfont={}, labelfont={}, singlelinecheck=true}
+
+%\usepackage{subfig}
+\usepackage{subcaption}
+
+\usepackage{color}
+\usepackage{paralist}
+\usepackage{enumitem}
+
+
+
+\usepackage{graphicx}
+\usepackage{setspace}
+\usepackage{float}
+\usepackage{hyperref, url}
+
+\usepackage{dcolumn}
+\newcolumntype{d}[1]{D{.}{.}{-1}} % "decimal" column type 
+
+
+\definecolor{umn}{rgb}{0.1843137, 0.4509804, 0.5372549}
+\hypersetup{colorlinks,breaklinks,
+            linkcolor=umn,urlcolor=umn,
+            anchorcolor=umn,citecolor=umn}
+            
+\usepackage[right=1in,left=1in,top=1in,bottom=1in]{geometry}
+\usepackage{fourier}
+\usepackage{pdflscape}
+
+
+
+\title{ASSIGNMENT \#7} 
+\author{EPsy 8252} 
+\date{}
+
+
+\begin{document} 
+
+\maketitle 
+
+
+\noindent Please submit your responses to each of the questions below in a printed document. All graphics should be resized so that they do not take up more room than necessary and all should have an appropriate caption. Any equations should be appropriately typeset within the document. All syntax included should be typeset in a monospaced font, appropriately commented and follow the Data Camp Style Guide (\url{https://teach.datacamp.com/style-guide}). There are 19 points possible for the assignment.
+
+
+\section*{Chapter 12 (Gelman \& Hill)}
+
+\noindent Please complete Exercise \#2, Exercise \#3, and Exercise \#6 from Section 12.11 (p. 277--288). The number of points for each exercise is shown below.
+
+\begin{itemize}
+\item \#2(a): \textbf{1pt.} For full credit, include your syntax.
+\item \#2(b): \textbf{3pts.}
+\item \#2(c): \textbf{2pts.} For full credit, include plots for both models.
+\item \#2(d): \textbf{1pt.} 
+\item \#3(a): \textbf{2pts.} For full credit, include your syntax.
+\item \#3(b): \textbf{2pts.} For full credit, include your syntax.
+\item \#6(a): \textbf{3pts.} 
+\item \#6(b): \textbf{3pts.}
+\item \#6(c): \textbf{2pts.}
+\end{itemize}
+
+
+\end{document}

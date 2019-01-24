@@ -1,0 +1,173 @@
+\documentclass[11pt]{article} 
+
+
+\usepackage{amsmath}
+\usepackage{caption}
+\captionsetup[table]{textfont={it}, labelfont={}, singlelinecheck=false, labelsep=newline}
+\captionsetup[figure]{textfont={}, labelfont={it}, singlelinecheck=false, labelsep=period}
+\captionsetup[subfigure]{textfont={}, labelfont={}, singlelinecheck=true}
+
+%\usepackage{subfig}
+\usepackage{subcaption}
+
+\usepackage{color}
+\usepackage{paralist}
+\usepackage{enumitem}
+
+
+
+\usepackage{graphicx}
+\usepackage{setspace}
+\usepackage{float}
+\usepackage{hyperref, url}
+
+\usepackage{dcolumn}
+\newcolumntype{d}[1]{D{.}{.}{-1}} % "decimal" column type 
+
+
+\definecolor{umn}{rgb}{0.1843137, 0.4509804, 0.5372549}
+\hypersetup{colorlinks,breaklinks,
+            linkcolor=umn,urlcolor=umn,
+            anchorcolor=umn,citecolor=umn}
+            
+\usepackage[right=1in,left=1in,top=1in,bottom=1in]{geometry}
+\usepackage{fourier}
+\usepackage{pdflscape}
+
+\title{ASSIGNMENT \#6} 
+\author{EPsy 8252} 
+\date{}
+
+\begin{document}
+
+\maketitle 
+
+
+
+\noindent This assignment is intended to give you experience in using the \texttt{lmer()} function for fitting multi-level regression models. You will use the two datasets \textit{popularLevel1.csv}, and \textit{popularLevel2.csv}, which come from Hox (2002). The codebook for these data is also available. You will use the data to examine predictors of students' popularity, which is the average popularity of a student as rated by his/her classmates. Since the sociometric procedure used to assign a popularity measure asked all pupils in a class to rate all the other pupils, and then assigned the average popularity rating to each pupil, there are likely classroom-level effects. To deal with this, the models you will fit in this assignment will need to account for the within-class variation by including a class-level random effect. \\
+\linebreak
+Please submit your responses to each of the questions below in a printed document. Please adhere to the following guidelines for formatting your assignment:
+\begin{itemize}
+\item All graphics should be resized so that they do not take up more room than necessary and all should have an appropriate caption. 
+\item Any typed mathematics (equations, matrices, vectors, etc.) should be appropriately typeset within the document using Equation Editor, Markdown, or \LaTeX. 
+\item All syntax included should be typeset in a monospaced font, appropriately commented and follow the Data Camp Style Guide (\url{https://teach.datacamp.com/style-guide}). 
+\end{itemize}
+
+
+\section*{PREPARATION}
+
+\noindent To begin the assignment, you will need to merge the \texttt{popularLevel2} data into the \texttt{popularLevel1} data. This should result in a data frame with 2000 rows and 7 variables. 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% LMER I
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section*{LMER I} 
+ 
+\noindent To begin the analysis, you will fit the intercept-only model with a random-effect of intercept. This will provide a benchmark for any subsequent models that you fit. You can label this section as ``LMER I'' in your Markdown document.
+
+\begin{enumerate}[resume]
+\item Using symbolic notation, including variable names where appropriate, write the equations for the multi-level model.
+\item Using symbolic notation, variable names where appropriate, write the composite (mixed-effects) equation for the model.
+\item Fit the model in R. Add the results into a summary regression table that will present the results of this model as well as the subsequent models you will fit in the assignment.
+\item Compute and interpret the value of the intraclass correlation.
+\end{enumerate}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% LMER 1
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section*{LMER II}
+
+\noindent Fit a model that includes the random effects of gender and level of extraversion (and intercept) to explain variation in popularity.  Answer the following questions. You can label this section as ``LMER II'' in your Markdown document.
+
+
+\begin{enumerate}[resume]
+\item Using symbolic notation, including variable names where appropriate, write the equations for the multi-level model.
+\item Using symbolic notation, including variable names where appropriate, write the composite (mixed-effects) equation for the model.
+\item Fit the model in R. Add the results into your summary regression table. 
+\item Consider the \texttt{Random effects} table in the output. Explain each of the numbers in the \texttt{Variance} column (i.e., interpret the values).
+\item Consider the \texttt{Random effects} table in the output. Explain what the value in the \texttt{Corr} column represents and what it means in this situation (i.e., provide an interpretation for this example).
+\item Based on the estimated values, explain why there is evidence that the random effect for \texttt{female} does not belong in the model.
+\item Provide an appropriate interpretation of the fixed effect estimate in the \texttt{extra} row.
+\item Provide an appropriate interpretation of the fixed effect estimate in the \texttt{female} row.
+\item Based on the estimated values, compute a 95\% confidence interval for the fixed effect of \texttt{extra}.
+\end{enumerate}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% LMER II
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section*{LMER III}
+
+\noindent Add the Level-2 predictor of teacher expereience to the model fitted in the LMER II section. Answer the following questions. You can label this section as ``LMER III'' in your Markdown document.
+
+\begin{enumerate}[resume]
+\item Using symbolic notation, including variable names where appropriate, write the equations for the multi-level model.
+\item Using symbolic notation, including variable names where appropriate, write the composite (mixed-effects) equation for the model.
+\item Fit the model in R. Add the results into your summary regression table.
+\item Which of the five fixed effect estimates should be interpreted? Explain.
+\end{enumerate}
+
+
+\section*{Model Comparison}
+
+\begin{enumerate}[resume]
+\item Based on the estimated value of the deviance, which of the three models fitted thus far seems to fit the best? Explain.
+\item Based on the estimated value of the AIC, which of the three models fitted thus far seems to fit the best? Explain.
+\item Based on the estimated value of the BIC, which of the three models fitted thus far seems to fit the best? Explain.
+\end{enumerate}
+
+
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%Graph of Interaction
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%\section*{Graph of Interaction}
+%
+%\noindent To gain experience in graphing based on \texttt{lmer()} output, you will construct a graph for males and females based on \texttt{LMER.3}. Run the following syntax.
+%
+%<<echo=T,fig=F,results=hide>>=
+%## Preliminaries.
+%fixef(LMER.3)
+%head(model.matrix(LMER.3))
+%graphdat <- with(sleep, data.frame(SubNum, Days, Female, model.matrix(LMER.3) %*% fixef(LMER.3)))
+%colnames(graphdat)[4] <- "predict"
+%head(graphdat)
+%graphdat$Female <- as.factor(graphdat$Female)
+%## ggplot graph
+%ggplot(data = graphdat, aes(x = Days, y = predict, line = Female)) + 
+%  geom_line() + 
+%  theme_bw()
+%@
+%
+%\noindent Include the graph in your write-up and answer the following questions. You can label this as
+%``Section: Graph II'' in your write-up.
+%
+%\begin{enumerate}[resume]
+%\item Though the syntax used to obtain \texttt{predict} might be unclear, what do you think the values of \texttt{predict} represent? (Hint: see the output for \texttt{fixef()} above.)
+%\item Does the graph depict an interaction? Explain why or why not.
+%\end{enumerate}
+
+
+
+
+
+
+
+
+
+
+
+
+\end{document}
+

@@ -1,0 +1,102 @@
+\documentclass[]{article} 
+
+\usepackage{amsmath}
+\usepackage{caption}
+\captionsetup[table]{textfont={it}, labelfont={}, singlelinecheck=false, labelsep=newline}
+\captionsetup[figure]{textfont={}, labelfont={it}, singlelinecheck=false, labelsep=period}
+\captionsetup[subfigure]{textfont={}, labelfont={}, singlelinecheck=true}
+
+%\usepackage{subfig}
+\usepackage{subcaption}
+
+\usepackage{color}
+\usepackage{paralist}
+\usepackage{enumitem}
+
+
+
+\usepackage{graphicx}
+\usepackage{setspace}
+\usepackage{float}
+\usepackage{hyperref, url}
+
+\usepackage{dcolumn}
+\newcolumntype{d}[1]{D{.}{.}{-1}} % "decimal" column type 
+
+
+\definecolor{umn}{rgb}{0.1843137, 0.4509804, 0.5372549}
+\hypersetup{colorlinks,breaklinks,
+            linkcolor=umn,urlcolor=umn,
+            anchorcolor=umn,citecolor=umn}
+            
+\usepackage[right=1in,left=1in,top=1in,bottom=1in]{geometry}
+\usepackage{fourier}
+\usepackage{pdflscape}
+
+
+
+\title{ASSIGNMENT \#3} 
+\author{EPsy 8252} 
+\date{}
+
+
+\begin{document} 
+
+\maketitle 
+
+
+\noindent This assignment covers vector geometry and matrix algebra. Please submit your responses to each of the questions below in a printed document. Please adhere to the following guidelines for formatting your assignment:
+\begin{itemize}
+\item All graphics should be resized so that they do not take up more room than necessary and all should have an appropriate caption. 
+\item Any typed mathematics (equations, matrices, vectors, etc.) should be appropriately typeset within the document using Equation Editor, Markdown, or \LaTeX. 
+\item All syntax included should be typeset in a monospaced font, appropriately commented and follow the Data Camp Style Guide (\url{https://teach.datacamp.com/style-guide}). 
+\end{itemize}
+
+\noindent Use the data, \textit{Sex-Discrimination.csv}, to complete the assignment. There are 20 points possible for the assignment. Each question is worth one point, unless otherwise noted.
+
+
+\section*{Effects Coding}
+
+
+
+\noindent Compute the following means from the data.
+
+\begin{enumerate}[resume]
+\item Compute the marginal mean for salary.
+\item Compute the mean salary (conditional means) for females and the mean salary for males.
+\item Compute the \textit{grand mean} for salary (i.e., the mean of the conditional means).
+\end{enumerate}
+
+\noindent Create two effects-coded vectors for the \texttt{sex} variable (\texttt{sexM}, and \texttt{sexF}) using the coefficients $-1$ and $+1$. For the \texttt{sexM} predictor, males should be coded $+1$ and females should be coded $-1$. The coding for \texttt{sexF} should be reversed.
+
+\begin{enumerate}
+\item Compute the angle between the \texttt{sexM} and \texttt{sexF} vectors. Show your work. \textbf{(2pts)}
+\item Using R, compute the correlation between the two vectors. Verify that the angle you computed in \#1 is correct.
+\end{enumerate}
+
+\noindent Fit the linear model: \texttt{salary $\sim$ 1 + sexF}. 
+
+\begin{enumerate}[resume]
+\item Write out the \textbf{b} vector.
+\item Interpret the intercept coefficient.
+\item Interpret the slope coefficient.
+\item Using matrices, compute the fitted values for a male and a female. Show your work. \textbf{(2pts)}
+\end{enumerate}
+
+\noindent Fit the linear model: \texttt{salary $\sim$ 1 + sexM}. 
+
+\begin{enumerate}[resume]
+\item Write out the \textbf{b} vector.
+\item Interpret the intercept coefficient.
+\item Interpret the slope coefficient.
+\item Using matrices, compute the fitted values for a male and a female. Show your work. \textbf{(2pts)}
+\end{enumerate}
+
+\noindent Fit the linear model: \texttt{salary $\sim$ sexF + sexM}. 
+
+\begin{enumerate}[resume]
+\item Write out the \textbf{b} vector.
+\item Explain using vector geometry why \texttt{NA} is produced for one of the coefficients. \textbf{(2pts)}
+\end{enumerate}
+
+\end{document}
