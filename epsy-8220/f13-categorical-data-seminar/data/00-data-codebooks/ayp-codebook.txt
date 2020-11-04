@@ -1,34 +1,0 @@
-AYP.csv
-Codebook
-
--------------------------------
-
-BACKGROUND
-
-Adequate yearly progress (AYP) is the measure by which schools, districts, and states are held accountable for student performance under Title I of the No Child Left Be- hind Act of 2001 (NCLB) Under NCLB, states are required to show that public school students are making yearly progress toward meeting state academic content standards. The goal is to have all students reaching proficient levels in reading and math by 2014 as measured by performance on state tests.
-
-To comply with NCLB, public school students in Minnesota take the Minnesota Comprehensive Assessments (MCA) in reading and mathematics each year from grade 3 to grade 8. The MCA in reading is administered again in grade 10 and the mathematics assessment is re-administered in grade 11. Additionally, MCAs in science (grades 5, 8, and 10) and in writing (grade 9) are also taken. The results of the MCA’s are then compared to prior years, and, based on the state-determined AYP standards, used to determine if the school or district has made adequate progress towards the proficiency goal.AYP for a school or district is calculated for several student sub-groups and consists of four areas: (1) Participation on MCA’s); (2) Proficiency on MCA’s; (3) Attendance; and (4) Graduation rate.If a school or district does not meet the established performance criteria, then either the school building or school district is identified as “needing improvement.”
-If a school or district fails to make AYP for two consecutive years, they are placed in the ‘Choice’ School Improvement Status. NCLB specifies a number of consequences for those schools receiving Title I funds, including notifying parents of that the school is in need of improvement, providing students an option to transfer to another public school within the district, providing tutoring, to students or even re-structuring the school. 
--------------------------------
-DATA
-
-The data come from the Minnesota Department of Education. The data can be obtained online at http://education.state.mn.us/mde/
--------------------------------
-
-VARIABLES
-
-ayp:           Did the district makee adequate yearly progress (AYP) in 2012?
-                0 = No
-                1 = Yes
-
-teacherSalary: What is the average salary of any person(s) reported as having an instructional, or teaching assignment?
-
-poverty:       What is the estimated proportion of school aged children in poverty?
-                0 = Below 0.10
-                1 = Between 0.10 and 0.15
-                2 = Above 0.15
-
-enroll:        How many students were enrolled in the district during the 2011-2012 school year?
-
--------------------------------
-	

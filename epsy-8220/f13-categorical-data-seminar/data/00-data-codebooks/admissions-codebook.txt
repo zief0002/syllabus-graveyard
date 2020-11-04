@@ -1,68 +1,0 @@
-Admissions.csv
-Codebook
-
--------------------------------
-
-BACKGROUND
-
-Jones-White, Radcliffe, Lorenz, and Soria (in review) examined the influence of financial aid packaging on the probability of students’ success in college using a multinomial regression model to predict a student’s success (measured as: graduate from institution of entry, graduate from a transfer institution, or depart from college) controlling for several demographic factors. Jones-White, D., Radcliffe, P., Lorenz, L., & Soria, K. (in review). Priced out?: The influence of financial aid on the educational trajectories of first-year students starting college at a large research university. Research in Higher Education. 
--------------------------------
-DATA
-
-The data are a randomly selected sample of first-time, full-time freshman from the 2002 cohort at a large, midwestern research university classified by the Carnegie Foundation as having very high research activity (RU/VH).
--------------------------------
-
-VARIABLES
-
-id: 		Student ID
-
-degree:		Student outcome
-		  Graduate (original): Student graduated from original institution; 
-		  Graduate (transfer): Student graduated from transfer institution; 
-		  Non-Graduate: Student did not graduate
-
-unmet:		Unmet financial need the student has after adjusting for the student aid award (in $1000)
-
-need:		Amount of need-based grant aid awarded to the student from either 
-		(1) the federal Pell Grant program, (2) the federal SEOG grant program, 
-		(3) the state grant program, and (4) institutional need-based 
-		awards offered by the University’s Office of Student Finance (in $1000)
-
-loan:		Amount of loan aid the student accepted (in $1000)
-
-scholarship:	Amount of scholarship offered to student (in $1000)
-
-age19:		Student is non-traditional (>19 years old at the time of freshman enrollment)
-		  0: age <= 19		  1: age > 19
-
-onCampus:	Student lived in a residence hall/dormitory
-		  0: No		  1: Yes
-
-outstate:	Student is from out-of-state
-		  0: No		  1: Yes
-
-reciprocity:	Student is from a reciprocity state
-		  0: No		  1: Yes
-
-firstgen:	Student is a first generation college student
-		  0: No		  1: Yes
-
-act:		Student’s ACT score (if SAT was reported, concordance table was used to scale score)
-
-ap:		Number of Advanced Placement credits at time of enrollment
-
-remedial:	Student was enrolled in a remedial course
-		  0: No		  1: Yes
-
-ratio:          Ratio of credits hours earned to credit hours attempted in the student’s first semester (divided by 100);
-                A unit change reflects a 1/100th change rather than a change across the total scale.
-		
-ccount:         Number of C grades (C-, C, C+) received in student’s first semester
-
-dcount:         Number of D grades (D-, D, D+) received in student’s first semester
-
-wcount:         Number of courses withdrawn from in student’s first semester
-
--------------------------------
-
-
